@@ -47,6 +47,7 @@
       </div>
     </div>
     <div id="pokeinfo"></div>
+    <div id="ability-tooltip"></div>
     <script>
       const pokename = new URLSearchParams(window.location.search).get(
         "pokemon", //gets pokemon name from the top url
@@ -91,6 +92,8 @@
         allTypes.forEach((t) => (typeMultipliers[t] = 1));
 
         let abilities = data.abilities.map((a) => a.ability.name);
+        const abilityCache = {}
+
         for (const type of types) {
           const typeData = await (
             await fetch("https://pokeapi.co/api/v2/type/" + type)
@@ -124,6 +127,19 @@
             }
           });
         }
+          for (const abilityName of abilities){
+        fetch("https://pokeapi.co/api/v2/ability/" + abilityName)
+        .then(function(res){
+          return res.json();
+        })
+        .then(function(abilityData){
+          const englishDesc = abilityData.effect_entries.find(entry => entry.language.name === "en")
+          abilityCache[abilityName] = englishDesc.short_effect;
+        });
+      }
+
+        
+
         const weaknessesList = Object.keys(typeMultipliers).filter(
           (t) => typeMultipliers[t] > 1,
         );
@@ -207,7 +223,7 @@
               </div>
               </div>
             </div>
-        <h2>Abilities- ${data.abilities.map((a) => a.ability.name.replace(/-/g, " ")).join(", ")}</h2>
+        <h2>Abilities- ${data.abilities.map((a) => `<span class="ability-badge" data-ability="${a.ability.name}">${a.ability.name.replace(/-/g, " ")}</span>`).join(", ")}</h2>
        <h2>Typing &nbsp;${types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}</h2>
         ${strongAgainstList.length > 0 ? `<h2>STAB Super Effective to &nbsp;${strongAgainstList.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}</h2>` : ""}
         ${weaknessesList.length > 0 ? `<h2>Weaknesses &nbsp;${weaknessesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}x</span>`).join(" ")}</h2>` : ""}

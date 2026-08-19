@@ -1,6 +1,6 @@
 //loads all pokemon names for searching
 let allPokemonNames = [];
-
+let highlightedIndex = -1;
 async function loadAllPokemonNames() {
   const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=100000"); //fetches every single pokemon
   const data = await response.json();                                             //stores it as an array of strings
@@ -34,7 +34,7 @@ async function updateDropdown(input) {
   dropdown.classList.add("active");
 
   const query = input.toLowerCase().trim(); //trims whats in the search bar
-  const nameMatches = allPokemonNames.filter(p => p.displayName.includes(query)).slice(0, 8); 
+  const nameMatches = allPokemonNames.filter(p => p.displayName.includes(query)).slice(0, 7); 
 //takes the first 20 pokemon that finishes the searched words
   if (nameMatches.length === 0) {
     dropdown.replaceChildren();
@@ -92,7 +92,7 @@ isSearching = false;
 return;
 }
 
-const match = allPokemonNames.find(p => p.displayName.startsWith(pokeName));//if its in the array of pokemon names then it runs true
+const match = allPokemonNames.find(p => p.displayName.includes(pokeName));//if its in the array of pokemon names then it runs true
 
 if(!match){
   window.location.href = "notfound.html?pokemon=" + pokeName;//if doesnt work then brings it to the not found page
@@ -122,10 +122,40 @@ document.addEventListener("DOMContentLoaded", function() {
   document //makes it so u can press enter to search not just button
     .getElementById("searchbarid")
     .addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        pokeSearch(); //search function
+      const items = document.querySelectorAll("#search-dropdown .dropdown-item");
+      
+      if ((e.key === "Tab" && !e.shiftKey) || e.key === "ArrowDown" || e.key === "ArrowRight"){
+        e.preventDefault()
+        if (items.length === 0){
+          return;
+        }
+        highlightedIndex = (highlightedIndex + 1) % items.length;
       }
+      if ((e.key === "Tab" && e.shiftKey)  || e.key === "ArrowUp" || e.key === "ArrowLeft"){
+        e.preventDefault()
+        if (items.length === 0){
+          return;
+        }
+          highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+      }
+      if (e.key === "Enter"){
+        if (items.length === 0){
+          pokeSearch();
+          return;
+        }
+        if (highlightedIndex >= 0 && items[highlightedIndex]){
+          items[highlightedIndex].click();
+        }
+        else{
+          items[0].click();
+        }
+      }
+        items.forEach(i => i.classList.remove("highlighted"));
+        if (items[highlightedIndex]) {
+          items[highlightedIndex].classList.add("highlighted");
+        }
     });
+
   
   document.addEventListener("keydown", function (e) {
     if (e.key === "/") {//so u can press "/" to open search bar like google
@@ -136,6 +166,7 @@ document.addEventListener("DOMContentLoaded", function() {
   //for the dropdown searching event listener input
   document.getElementById("searchbarid").addEventListener("input", function(){
     updateDropdown(document.getElementById("searchbarid").value);
+    highlightedIndex = -1;
   });
   //if mouse focused on search bar show dropdown
   document.getElementById("searchbarid").addEventListener("focus", function() {
@@ -148,6 +179,6 @@ document.addEventListener("DOMContentLoaded", function() {
     setTimeout(() => {
       document.getElementById("search-dropdown").classList.remove("active");
     }, 150);
-  });
 
+});
 });

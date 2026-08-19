@@ -171,7 +171,10 @@ cursor: pointer;
   width: 67px;
   box-sizing: border-box
 }
-
+.dropdown-item.highlighted {
+  background: #f0edff;
+  outline: 2px solid #856eea; 
+}
 
 .type-normal   { background-color: #a8a878; }
 .type-fire     { background-color: #f08030; }
@@ -191,3 +194,4 @@ cursor: pointer;
 .type-dark     { background-color: #31251d; }
 .type-steel    { background-color: #b8b8d0; }
 .type-fairy    { background-color: #ee99ac; }
+

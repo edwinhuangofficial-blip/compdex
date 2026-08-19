@@ -235,3 +235,27 @@ position: relative;
   font-weight: bold;
   font-size: 15px;
 }
+
+.dropdown-item.highlighted {
+  background: #f0edff;
+  outline: 2px solid #856eea; 
+}
+
+/* [ADD] tooltip box — invisible until JS adds .visible */
+#ability-tooltip {
+  display: none;                        /* [ADD] hidden by default */
+  position: fixed;                      /* [ADD] floats over everything, ignores page scroll */
+  background: #1a1a2e;                  /* [ADD] dark background */
+  color: white;                         /* [ADD] white text */
+  padding: 10px 14px;                   /* [ADD] breathing room inside the box */
+  border-radius: 10px;                  /* [ADD] rounded corners */
+  font-size: 13px;                      /* [ADD] slightly smaller than body text */
+  max-width: 260px;                     /* [ADD] wraps instead of going off-screen */
+  pointer-events: none;                 /* [ADD] mouse passes through tooltip so hover doesn't flicker */
+  z-index: 999;                         /* [ADD] sits on top of everything */
+  line-height: 1.5;                     /* [ADD] readable line spacing */
+}
+
+#ability-tooltip.visible {             /* [ADD] JS adds this class to show it */
+  display: block;
+}
