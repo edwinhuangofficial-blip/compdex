@@ -130,7 +130,7 @@ position: relative;
 .type-badge {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 67px;
+  border-radius: 6px;
   font-weight: bold;
   font-size: 15px;
   text-shadow: 1px 1px 1px black;
@@ -145,7 +145,7 @@ position: relative;
 .type-badge-multipliers {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 67px;
+  border-radius: 6px;
   font-weight: bold;
   font-size: 15px;
   text-shadow: 1px 1px 1px black;
@@ -160,7 +160,7 @@ position: relative;
 .type-dropdown{
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 67px;
+  border-radius: 6px;
   font-weight: bold;
   font-size: 14px;
   text-shadow: 1px 1px 2px black;

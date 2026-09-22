@@ -34,7 +34,25 @@ async function updateDropdown(input) {
   dropdown.classList.add("active");
 
   const query = input.toLowerCase().trim(); //trims whats in the search bar
-  const nameMatches = allPokemonNames.filter(p => p.displayName.includes(query)).slice(0, 7); 
+  const nameMatches = allPokemonNames
+  .filter(function (pokemon) {
+    return pokemon.displayName.includes(query);
+  })
+  .sort(function (firstPokemon, secondPokemon) {
+    const firstStarts = firstPokemon.displayName.startsWith(query);
+    const secondStarts = secondPokemon.displayName.startsWith(query);
+
+    if (firstStarts && !secondStarts) {
+      return -1;
+    }
+
+    if (!firstStarts && secondStarts) {
+      return 1;
+    }
+
+    return 0;
+  })
+  .slice(0, 7); 
 //takes the first 20 pokemon that finishes the searched words
   if (nameMatches.length === 0) {
     dropdown.replaceChildren();
