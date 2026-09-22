@@ -110,6 +110,19 @@ isSearching = false;
 return;
 }
 
+const items = document.querySelectorAll("#search-dropdown .dropdown-item");
+
+if (items.length > 0) {
+  if (highlightedIndex >= 0 && items[highlightedIndex]) {
+    items[highlightedIndex].click();
+  } else {
+    items[0].click();
+  }
+
+  isSearching = false;
+  return;
+}
+
 const match = allPokemonNames.find(p => p.displayName.includes(pokeName));//if its in the array of pokemon names then it runs true
 
 if(!match){
