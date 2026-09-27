@@ -1,6 +1,6 @@
 <!doctype html>
 <html>
-  <head><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="index.css" />
     <link rel="stylesheet" href="shared.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -51,13 +51,21 @@
       </div>
 
       <div class="bar-right">
+        <button id="share-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
         <button id="settings-button" type="button">Settings</button><!--make this work later-->
       </div>
     </div>
-    <main>
+    <main class="homepage-layout">
       <section class="homepage-filters" aria-label="Filter Pokémon">
+        <div class="sidebar-filter-actions">
+        <div class="favorites-filter-wrap">
+          <button id="favorites-filter" type="button" aria-label="Show favorited Pokémon" aria-pressed="false" aria-describedby="favorites-notice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg></button>
+          <p id="favorites-notice" role="status" hidden></p>
+        </div>
+        <button id="reset-filters" type="button">Reset</button>
+        </div>
         <div class="mini-search-wrap">
-          <input id="name-filter" type="search" placeholder="Name…" aria-label="Filter Pokémon by name" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" />
+          <input id="name-filter" type="search" placeholder="Filter Name..." aria-label="Filter Pokémon by name" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" />
         </div>
         <select id="type-filter" aria-label="Type I">
           <option value="">Type I</option>
@@ -65,21 +73,41 @@
         <select id="second-type-filter" aria-label="Type II">
           <option value="">Type II</option>
         </select>
-        <select id="generation-filter" aria-label="Generation" title="Generation in which the Pokémon species was introduced">
-          <option value="">Generation</option>
-        </select>
+
+        <div class="sidebar-sort-controls">
         <label for="sort-filter">Sort by:</label>
         <select id="sort-filter">
           <option value="id">#</option>
-          <option value="az">A–Z</option>
-          <option value="za">Z–A</option>
-          <option value="id-desc"># reversed</option>
+          <option value="name">Name</option>
+          <option value="total">Base Stat Total</option>
+          <option value="speed">Speed</option>
+          <option value="attack">Attack</option>
+          <option value="special-attack">Special Attack</option>
+          <option value="defense">Defense</option>
+          <option value="special-defense">Special Defense</option>
+          <option value="hp">HP</option>
+          <option value="usage">Usage</option>
         </select>
-        <div class="favorites-filter-wrap">
-          <button id="favorites-filter" type="button" aria-label="Show favorited Pokémon" aria-pressed="false" aria-describedby="favorites-notice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg></button>
-          <p id="favorites-notice" role="status" hidden></p>
+        <button id="sort-direction" type="button" aria-label="Ascending order; switch to descending">↑</button>
         </div>
-        <button id="reset-filters" type="button">Reset</button>
+
+
+        <label for="regulation-filter">Regulation / Tournament:</label>
+        <select id="regulation-filter" aria-label="Regulation"><option value="">All Pokémon</option><option value="mc">Champions M-C (current)</option><option value="mb">Champions M-B</option></select>
+        <select id="battle-format" aria-label="Battle format"><option value="doubles">Doubles (VGC)</option><option value="singles">Singles (BSS)</option></select>
+        <p id="usage-note" class="competitive-note" role="status" hidden></p>
+        <div class="minimum-speed-row"><label for="minimum-speed">Min. Speed:</label>
+        <input id="minimum-speed" class="minimum-input" type="number" min="0" step="1" placeholder="0" /></div>
+        <div class="minimum-stat-row"><label for="minimum-stat-filter">Min. Stat:</label><select id="minimum-stat-filter" aria-label="Minimum stat"><option value="total">Base Stat Total</option><option value="hp">HP</option><option value="attack">Attack</option><option value="defense">Defense</option><option value="special-attack">Special Attack</option><option value="special-defense">Special Defense</option><option value="speed">Speed</option></select><input id="minimum-stat-value" class="minimum-input" aria-label="Minimum selected stat value" type="number" min="0" step="1" placeholder="0" /></div>
+        <select id="category-filter" aria-label="Pokemon category">
+          <option value="">All categories</option><option value="ordinary">Ordinary</option><option value="legendary">Legendary</option><option value="pseudo">Pseudo-Legendary</option><option value="mythical">Mythical</option><option value="ultra">Ultra Beast</option><option value="paradox">Paradox</option>
+        </select>
+        <select id="generation-filter" aria-label="Generation" title="Generation in which the Pokémon species was introduced">
+          <option value="">Generation</option>
+        </select>
+        <select id="game-filter" aria-label="Game Pokedex" title="Filters by game Pokedex membership, not catch locations or transfer legality"><option value="">Game</option><option value="1">Red / Blue</option><option value="2">Yellow</option><option value="3">Gold / Silver</option><option value="4">Crystal</option><option value="5">Ruby / Sapphire</option><option value="6">Emerald</option><option value="7">FireRed / LeafGreen</option><option value="8">Diamond / Pearl</option><option value="9">Platinum</option><option value="10">HeartGold / SoulSilver</option><option value="11">Black / White</option><option value="14">Black 2 / White 2</option><option value="15">X / Y</option><option value="16">Omega Ruby / Alpha Sapphire</option><option value="17">Sun / Moon</option><option value="18">Ultra Sun / Ultra Moon</option><option value="19">Let's Go Pikachu / Eevee</option><option value="20">Sword / Shield</option><option value="23">Brilliant Diamond / Shining Pearl</option><option value="24">Legends: Arceus</option><option value="25">Scarlet / Violet</option><option value="30">Legends: Z-A</option><option value="32">Champions</option></select>
+      </section>
+      <div class="homepage-results">
         <div class="filter-summary" aria-live="polite">
           <span id="filter-results">Results: —</span>
           <form id="top-page-form" novalidate>
@@ -90,7 +118,6 @@
           <button id="top-previous-page" type="button" aria-label="Previous page" disabled></button>
           <button id="top-next-page" type="button" aria-label="Next page" disabled></button>
         </div>
-      </section>
       <div id="poke-grid" aria-busy="true"></div>
       <div class="grid-footer">
       <p id="grid-status" role="status" aria-live="polite"></p>
@@ -104,8 +131,10 @@
         <button id="next-page" type="button" disabled>Next</button>
       </nav>
       </div>
+      </div>
     </main>
     <script src="homepage.js"></script>
+    <footer class="site-bottom-bar" aria-label="Site footer"></footer>
   </body>
 </html>
 

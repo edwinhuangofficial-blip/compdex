@@ -24,6 +24,39 @@ function reverseTransformName(apiName){
 }
 
 const pokemonCache = {};
+function getPokemonArtwork(sprites, preferences) {
+  const official = sprites.other?.["official-artwork"];
+  const hd = preferences.shiny ? official?.front_shiny : official?.front_default;
+  const pixel = preferences.shiny ? sprites.front_shiny : sprites.front_default;
+  const source = (preferences.artwork === "pixel" ? pixel || hd : hd || pixel)
+    || (preferences.artwork === "pixel" ? sprites.front_default || official?.front_default : official?.front_default || sprites.front_default);
+  return { source, pixel: Boolean(source && (source === sprites.front_default || source === sprites.front_shiny)), sprite: pixel || sprites.front_default };
+}
+async function createCardThumbnail(source) {
+  // Decode HD artwork temporarily, then keep only a thumbnail in the card DOM.
+  // 224px supports the 112px desktop image at double pixel density.
+  if (!source || typeof createImageBitmap !== "function") return source;
+  let bitmap;
+  let canvas;
+  try {
+    const response = await fetch(source);
+    if (!response.ok) return source;
+    bitmap = await createImageBitmap(await response.blob());
+    const scale = Math.min(1, 224 / Math.max(bitmap.width, bitmap.height));
+    canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d");
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = "high";
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/png");
+  } catch { return source; }
+  finally {
+    if (bitmap) bitmap.close();
+    if (canvas) canvas.width = canvas.height = 0;
+  }
+}
 // Tiny cropped sprite URLs only; no HD artwork or canvases are retained.
 const croppedSpriteCache = new Map();
 function cropPixelArtwork(source) {

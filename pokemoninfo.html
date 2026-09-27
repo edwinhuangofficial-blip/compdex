@@ -51,6 +51,7 @@
       </div>
 
       <div class="bar-right">
+        <button id="share-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
         <button id="settings-button" type="button">Settings</button>
       </div>
     </div>
@@ -72,20 +73,20 @@
       let currentPokemonData = null;
       function updateInfoArtwork() {
         if (!currentPokemonData) return;
-        const pixel = window.CompDexSettings.get().artwork === "pixel";
-        const official = currentPokemonData.sprites.other["official-artwork"].front_default;
-        const sprite = currentPokemonData.sprites.front_default;
+        const preferences = window.CompDexSettings.get();
+        const pixel = preferences.artwork === "pixel";
+        const { source, pixel: pixelArtwork, sprite } = getPokemonArtwork(currentPokemonData.sprites, preferences);
         const image = document.getElementById("pokemon-main-artwork");
         if (!image) return;
-        const source = pixel ? sprite || official : official || sprite;
         image.hidden = !source;
         if (source) image.src = source;
-        image.classList.toggle("pixel-artwork", Boolean(source && source === sprite));
-        if (source && source === sprite) cropPixelArtwork(source).then(cropped => {
+        image.classList.toggle("pixel-artwork", pixelArtwork);
+        if (pixelArtwork) cropPixelArtwork(source).then(cropped => {
           if (image.getAttribute("src") === source) image.src = cropped;
         });
         const secondary = document.getElementById("pokemon-pixel-artwork");
         secondary.hidden = pixel || !sprite;
+        if (sprite) secondary.src = sprite;
         if (!secondary.hidden) cropPixelArtwork(sprite).then(cropped => {
           if (secondary.getAttribute("src") === sprite) secondary.src = cropped;
         });
@@ -359,6 +360,7 @@
       window.addEventListener("compdex:settings-changed", updateInfoArtwork);
       loadPokemon();
     </script>
+    <footer class="site-bottom-bar" aria-label="Site footer"></footer>
   </body>
 </html>
 

@@ -1,14 +1,17 @@
 (() => {
   const storageKey = 'compdex.settings.v1';
-  const defaults = Object.freeze({theme:'light',artwork:'hd',includeEvolutions:true,includeAltForms:true,defaultSort:'id',animations:'full',accent:'#66adff'});
+  const defaults = Object.freeze({theme:'light',artwork:'hd',shiny:false,includeEvolutions:true,includeAltForms:true,defaultSort:'id',sortDirection:'asc',pageSize:52,animations:'full',accent:'#66adff'});
   function validate(value) {
     const v = value && typeof value === 'object' ? value : {};
     return {
       theme: ['light','dark','system'].includes(v.theme) ? v.theme : defaults.theme,
       artwork: ['hd','pixel'].includes(v.artwork) ? v.artwork : defaults.artwork,
+      shiny: typeof v.shiny === 'boolean' ? v.shiny : defaults.shiny,
       includeEvolutions: typeof v.includeEvolutions === 'boolean' ? v.includeEvolutions : defaults.includeEvolutions,
       includeAltForms: typeof v.includeAltForms === 'boolean' ? v.includeAltForms : defaults.includeAltForms,
-      defaultSort: ['id','az','za','id-desc'].includes(v.defaultSort) ? v.defaultSort : defaults.defaultSort,
+      defaultSort: ['id','name','total','speed','attack','special-attack','defense','special-defense','hp'].includes(v.defaultSort) ? v.defaultSort : ['az','za'].includes(v.defaultSort) ? 'name' : defaults.defaultSort,
+      sortDirection: ['asc','desc'].includes(v.sortDirection) ? v.sortDirection : ['za','id-desc'].includes(v.defaultSort) ? 'desc' : defaults.sortDirection,
+      pageSize: Number.isInteger(v.pageSize) && v.pageSize >= 1 && v.pageSize <= 200 ? v.pageSize : defaults.pageSize,
       animations: ['full','reduced','off'].includes(v.animations) ? v.animations : defaults.animations,
       accent: /^#[0-9a-f]{6}$/i.test(v.accent) ? v.accent.toLowerCase() : defaults.accent,
     };
@@ -30,6 +33,11 @@
     root.style.setProperty('--accent', preferences.accent);
     const rgb = [1,3,5].map(index => parseInt(preferences.accent.slice(index,index+2),16));
     root.style.setProperty('--accent-rgb',rgb.join(' '));
+    const barBase=theme==='dark'?[25,33,44]:[255,255,255];
+    const barRgb=rgb.map((channel,index)=>Math.round(channel*.1+barBase[index]*.9));
+    root.style.setProperty('--bar-bg',`rgb(${barRgb.join(' ')})`);
+    const luminance=barRgb.map(channel=>{const value=channel/255;return value<=.04045?value/12.92:((value+.055)/1.055)**2.4;});
+    root.style.setProperty('--bar-text',luminance[0]*.2126+luminance[1]*.7152+luminance[2]*.0722>.179?'#101720':'#ffffff');
     const base = theme === 'dark' ? [25,33,44] : [255,255,255];
     const subtle = preferences.accent === defaults.accent && theme === 'light' ? '#f0edff' : `rgb(${rgb.map((c,i)=>Math.round(c*.13+base[i]*.87)).join(' ')})`;
     root.style.setProperty('--accent-subtle',subtle);
@@ -53,6 +61,49 @@
   });
   document.addEventListener('DOMContentLoaded',()=>{
     applyAppearance();
+    const shareButton=document.getElementById('share-button');
+    const shareUrl='https://edwinhuangofficial-blip.github.io/compdex/';
+    const shareWrap=document.createElement('div');
+    shareWrap.className='share-wrap';
+    shareButton.before(shareWrap);
+    shareWrap.append(shareButton);
+    const shareNotice=document.createElement('div');
+    shareNotice.className='share-notice';
+    shareNotice.setAttribute('role','status');
+    shareNotice.hidden=true;
+    shareWrap.append(shareNotice);
+    let shareTimer;
+    function showShareNotice(message,manual=false) {
+      clearTimeout(shareTimer);
+      shareNotice.textContent=message;
+      shareNotice.hidden=false;
+      if(manual) {
+        const input=document.createElement('input');
+        input.type='text';input.readOnly=true;input.value=shareUrl;
+        input.setAttribute('aria-label','Website link to copy');
+        input.addEventListener('focus',()=>input.select());
+        shareNotice.append(input);input.focus();input.select();
+      } else shareTimer=setTimeout(()=>{shareNotice.hidden=true;},3500);
+    }
+    shareButton.addEventListener('click',async()=>{
+      if(shareButton.disabled)return;
+      shareButton.disabled=true;
+      shareNotice.hidden=true;
+      try {
+        if(typeof navigator.share==='function') {
+          try {
+            await navigator.share({title:'CompDex',text:'Explore Pokémon on CompDex.',url:shareUrl});
+            return;
+          } catch(error) { if(error.name==='AbortError')return; }
+        }
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          showShareNotice('Website link copied!');
+        } catch { showShareNotice('Copy this website link:',true); }
+      } finally { shareButton.disabled=false; }
+    });
+    document.addEventListener('pointerdown',event=>{if(!shareWrap.contains(event.target))shareNotice.hidden=true;});
+    shareWrap.addEventListener('keydown',event=>{if(event.key==='Escape'){shareNotice.hidden=true;shareButton.focus();}});
     const dialog = document.createElement('dialog');
     dialog.id='settings-dialog';
     dialog.setAttribute('aria-labelledby','settings-title');
@@ -61,12 +112,14 @@
       <form id="settings-form">
         <div class="settings-content">
           <div class="settings-row"><label for="setting-theme">Theme</label><select id="setting-theme"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></div>
+          <div class="settings-row"><label for="setting-color-hex">Accent color</label><div class="settings-color"><span aria-hidden="true">#</span><input id="setting-color-hex" type="text" minlength="6" maxlength="6" pattern="[0-9a-fA-F]{6}" required spellcheck="false" aria-label="Accent color hexadecimal value" /><input id="setting-color-picker" type="color" aria-label="Choose accent color" /></div></div>
           <div class="settings-row"><label for="setting-artwork">Artwork</label><select id="setting-artwork"><option value="hd">HD artwork</option><option value="pixel">Pixel art</option></select></div>
+          <div class="settings-row"><label for="setting-shiny">Shiny</label><input id="setting-shiny" type="checkbox" /></div>
+          <div class="settings-row"><label for="setting-page-size">Pokémon per page</label><input id="setting-page-size" type="number" min="1" max="200" step="1" required /></div>
           <div class="settings-row"><label for="setting-evolutions">Include evolutions</label><input id="setting-evolutions" type="checkbox" /></div>
           <div class="settings-row"><label for="setting-alt-forms">Include alternate forms</label><input id="setting-alt-forms" type="checkbox" /></div>
-          <div class="settings-row"><label for="setting-sort">Default sorting</label><select id="setting-sort"><option value="id">#</option><option value="az">A–Z</option><option value="za">Z–A</option><option value="id-desc"># reversed</option></select></div>
+          <div class="settings-row"><label for="setting-sort">Default sorting</label><div class="settings-sort-controls"><select id="setting-sort"><option value="id">#</option><option value="name">Name</option><option value="total">Base Stat Total</option><option value="speed">Speed</option><option value="attack">Attack</option><option value="special-attack">Special Attack</option><option value="defense">Defense</option><option value="special-defense">Special Defense</option><option value="hp">HP</option></select><button id="setting-sort-direction" type="button" aria-label="Ascending order; switch to descending">↑</button></div></div>
           <div class="settings-row"><label for="setting-animations">Animations</label><select id="setting-animations"><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></div>
-          <div class="settings-row"><label for="setting-color-hex">Site color</label><div class="settings-color"><span aria-hidden="true">#</span><input id="setting-color-hex" type="text" minlength="6" maxlength="6" pattern="[0-9a-fA-F]{6}" required spellcheck="false" aria-label="Site color hexadecimal value" /><input id="setting-color-picker" type="color" aria-label="Choose site color" /></div></div>
         </div>
         <p id="settings-status" role="status" aria-live="polite"></p>
         <div class="settings-actions"><button id="restore-settings" type="button">Restore defaults</button><button id="save-settings" type="submit">Save</button></div>
@@ -75,15 +128,111 @@
     const control=id=>dialog.querySelector('#'+id);
     const form=control('settings-form');
     const status=control('settings-status');
+    let draftSortDirection='asc';
+    function syncDirection() {
+      control('setting-sort-direction').textContent=draftSortDirection==='asc'?'↑':'↓';
+      const statSort=!['id','name'].includes(control('setting-sort').value);
+      control('setting-sort-direction').setAttribute('aria-label',statSort
+        ? draftSortDirection==='asc'?'Highest first; switch to lowest first':'Lowest first; switch to highest first'
+        : draftSortDirection==='asc'?'Ascending order; switch to descending':'Descending order; switch to ascending');
+    }
+    control('setting-sort').addEventListener('change',syncDirection);
+    control('setting-sort-direction').addEventListener('click',()=>{draftSortDirection=draftSortDirection==='asc'?'desc':'asc';syncDirection();});
+    const dropdowns=[];
+    function createSettingsDropdown(select) {
+      const label=dialog.querySelector(`label[for="${select.id}"]`);
+      const name=label.textContent;
+      const wrapper=document.createElement('div');
+      wrapper.className='settings-dropdown';
+      const trigger=document.createElement('button');
+      trigger.type='button';
+      trigger.id=select.id+'-trigger';
+      trigger.className='settings-dropdown-trigger';
+      trigger.setAttribute('aria-haspopup','menu');
+      trigger.setAttribute('aria-expanded','false');
+      const menu=document.createElement('div');
+      menu.id=select.id+'-menu';
+      menu.className='settings-dropdown-menu';
+      menu.setAttribute('role','menu');
+      menu.setAttribute('aria-labelledby',trigger.id);
+      menu.inert=true;
+      trigger.setAttribute('aria-controls',menu.id);
+      select.before(wrapper);
+      wrapper.append(trigger,menu);
+      select.hidden=true;
+      label.htmlFor=trigger.id;
+      const options=[...select.options];
+      const buttons=options.map(option=>{
+        const item=document.createElement('button');
+        item.type='button';
+        item.className='settings-dropdown-option';
+        item.textContent=option.textContent;
+        item.setAttribute('role','menuitemradio');
+        item.tabIndex=-1;
+        item.addEventListener('click',()=>{
+          select.value=option.value;
+          sync();close();trigger.focus();
+          select.dispatchEvent(new Event('change',{bubbles:true}));
+        });
+        menu.append(item);
+        return item;
+      });
+      function sync() {
+        const shortNames={total:'BST','special-attack':'Sp Atk','special-defense':'Sp Def'};
+        trigger.textContent=select.id==='setting-sort'&&shortNames[select.value]?shortNames[select.value]:select.selectedOptions[0].textContent;
+        trigger.setAttribute('aria-label',name+': '+trigger.textContent);
+        buttons.forEach((item,i)=>item.setAttribute('aria-checked',String(options[i].value===select.value)));
+      }
+      function close() {
+        wrapper.classList.remove('open');
+        trigger.setAttribute('aria-expanded','false');
+        menu.inert=true;
+      }
+      function open() {
+        dropdowns.forEach(dropdown=>dropdown.close());
+        const roomBelow=dialog.getBoundingClientRect().bottom-wrapper.getBoundingClientRect().bottom;
+        wrapper.classList.toggle('opens-up',roomBelow<menu.scrollHeight+16);
+        wrapper.classList.add('open');
+        trigger.setAttribute('aria-expanded','true');
+        menu.inert=false;
+        buttons[select.selectedIndex].focus();
+      }
+      trigger.addEventListener('click',()=>wrapper.classList.contains('open')?close():open());
+      trigger.addEventListener('keydown',event=>{
+        if(['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();open();}
+      });
+      wrapper.addEventListener('keydown',event=>{
+        if(event.key==='Escape') {event.preventDefault();event.stopPropagation();close();trigger.focus();}
+        const index=buttons.indexOf(document.activeElement);
+        if(index>=0&&['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+          event.preventDefault();
+          const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
+          buttons[next].focus();
+        }
+      });
+      wrapper.addEventListener('focusout',event=>{if(!wrapper.contains(event.relatedTarget))close();});
+      select.addEventListener('change',sync);
+      dropdowns.push({sync,close,wrapper});
+      sync();
+    }
+    dialog.querySelectorAll('select').forEach(createSettingsDropdown);
+    dialog.addEventListener('pointerdown',event=>{
+      dropdowns.forEach(dropdown=>{if(!dropdown.wrapper.contains(event.target))dropdown.close();});
+    });
     function fill(settings) {
       control('setting-theme').value=settings.theme;
       control('setting-artwork').value=settings.artwork;
+      control('setting-shiny').checked=settings.shiny;
+      control('setting-page-size').value=settings.pageSize;
       control('setting-evolutions').checked=settings.includeEvolutions;
       control('setting-alt-forms').checked=settings.includeAltForms;
       control('setting-sort').value=settings.defaultSort;
+      draftSortDirection=settings.sortDirection;
+      syncDirection();
       control('setting-animations').value=settings.animations;
       control('setting-color-hex').value=settings.accent.slice(1);
       control('setting-color-picker').value=settings.accent;
+      dropdowns.forEach(dropdown=>{dropdown.sync();dropdown.close();});
     }
     control('setting-color-picker').addEventListener('input',()=>{
       control('setting-color-hex').value=control('setting-color-picker').value.slice(1);
@@ -95,7 +244,7 @@
     form.addEventListener('submit',event=>{
       event.preventDefault();
       if (!form.reportValidity()) return;
-      const next=validate({theme:control('setting-theme').value,artwork:control('setting-artwork').value,includeEvolutions:control('setting-evolutions').checked,includeAltForms:control('setting-alt-forms').checked,defaultSort:control('setting-sort').value,animations:control('setting-animations').value,accent:'#'+control('setting-color-hex').value});
+      const next=validate({theme:control('setting-theme').value,artwork:control('setting-artwork').value,shiny:control('setting-shiny').checked,pageSize:Number(control('setting-page-size').value),includeEvolutions:control('setting-evolutions').checked,includeAltForms:control('setting-alt-forms').checked,defaultSort:control('setting-sort').value,sortDirection:draftSortDirection,animations:control('setting-animations').value,accent:'#'+control('setting-color-hex').value});
       let saved=true;
       try { localStorage.setItem(storageKey,JSON.stringify(next)); } catch { saved=false; }
       publish(next);
@@ -111,6 +260,7 @@
     function closeSettings() {
       if (closing || !dialog.open) return;
       closing=true;
+      dropdowns.forEach(dropdown=>dropdown.close());
       dialog.classList.add('closing');
       closeTimer=setTimeout(()=>{dialog.close();dialog.classList.remove('closing');closing=false;},preferences.animations==='off'?0:preferences.animations==='reduced'?120:350);
     }

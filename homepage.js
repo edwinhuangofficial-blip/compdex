@@ -1,4 +1,3 @@
-const PAGE_SIZE = 50;
 let currentPage = 1;
 let totalPages = 1;
 let loadingPage = false;
@@ -10,6 +9,61 @@ let resultsPending = true;
 // Only keep the active sorted list, referencing the existing name catalogue.
 let filteredResults = null;
 const grid = document.getElementById("poke-grid");
+const visibleArtwork = new WeakSet();
+const pendingArtwork = new WeakSet();
+const artworkQueue = [];
+let activeArtworkRequests = 0;
+function queueCardArtwork(image) {
+  if (pendingArtwork.has(image) || image.hasAttribute("src")) return;
+  pendingArtwork.add(image);
+  artworkQueue.push(image);
+  pumpCardArtwork();
+}
+function pumpCardArtwork() {
+  while (activeArtworkRequests < 4 && artworkQueue.length) {
+    const image = artworkQueue.shift();
+    if (!image.isConnected || !visibleArtwork.has(image)) { pendingArtwork.delete(image); continue; }
+    activeArtworkRequests++;
+    const source = image.dataset.artworkSource;
+    const request = image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source);
+    request.then(thumbnail => {
+      if (image.isConnected && visibleArtwork.has(image)) image.src = thumbnail;
+    }).finally(() => {
+      pendingArtwork.delete(image);
+      activeArtworkRequests--;
+      pumpCardArtwork();
+    });
+  }
+}
+const artworkObserver = typeof IntersectionObserver === "function" ? new IntersectionObserver(entries => {
+  entries.forEach(({ target: image, isIntersecting }) => {
+    if (isIntersecting) { visibleArtwork.add(image); queueCardArtwork(image); }
+    else { visibleArtwork.delete(image); image.removeAttribute("src"); }
+  });
+}, { rootMargin: "160px 0px" }) : null;
+function releaseCardArtwork() {
+  if (artworkObserver) artworkObserver.disconnect();
+  artworkQueue.length = 0;
+  grid.querySelectorAll("img").forEach(image => { visibleArtwork.delete(image); image.removeAttribute("src"); });
+}
+function observeCardArtwork() {
+  grid.querySelectorAll("img[data-artwork-source]").forEach(image => {
+    if (artworkObserver) artworkObserver.observe(image);
+    else { visibleArtwork.add(image); queueCardArtwork(image); }
+  });
+}
+function deferOffscreenCards(cards) {
+  if (!CSS.supports("content-visibility", "auto")) return;
+  // Measure before applying containment so skipped grid rows retain their actual size.
+  const heights = cards.map(card => {
+    const style = getComputedStyle(card);
+    return card.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  });
+  cards.forEach((card, index) => {
+    card.style.containIntrinsicBlockSize = `auto ${heights[index]}px`;
+    card.classList.add("deferred-card");
+  });
+}
 const status = document.getElementById("grid-status");
 const pageInput = document.getElementById("page-number");
 const previousButton = document.getElementById("previous-page");
@@ -21,8 +75,104 @@ const typeFilter = document.getElementById("type-filter");
 const nameFilter = document.getElementById("name-filter");
 const secondTypeFilter = document.getElementById("second-type-filter");
 const sortFilter = document.getElementById("sort-filter");
+const statLabels = { total: "BST", speed: "Speed", attack: "Attack", "special-attack": "Sp. Atk", defense: "Defense", "special-defense": "Sp Def", hp: "HP" };
 const generationFilter = document.getElementById("generation-filter");
+const gameFilter = document.getElementById("game-filter");
+let gameData;
+function loadGameData() {
+  if (!gameData) gameData = fetch("data/games.json").then(response => {
+    if (!response.ok) throw new Error("Game data unavailable");
+    return response.json();
+  }).catch(error => { gameData = null; throw error; });
+  return gameData;
+}
+function nameMatchRank(pokemon, query, number) {
+  if (!query) return 0;
+  if (number !== null) return pokemon.id === number ? 0 : String(pokemon.id).startsWith(String(number)) ? 1 : 3;
+  const name = pokemon.displayName.toLowerCase();
+  if (query === "mega") return /-mega(?:-|$)/.test(pokemon.api) ? 1 : name.includes(query) ? 2 : 3;
+  return name === query ? 0 : name.startsWith(query) ? 1 : name.includes(query) ? 2 : 3;
+}
+const categoryFilter = document.getElementById("category-filter");
+const categoryBits = { legendary: 1, mythical: 2, pseudo: 4, ultra: 8, paradox: 16 };
+let categoryData;
+function loadCategoryData() {
+  if (!categoryData) categoryData = fetch("data/categories.json").then(response => {
+    if (!response.ok) throw new Error("Category data unavailable");
+    return response.json();
+  }).catch(error => { categoryData = null; throw error; });
+  return categoryData;
+}
+const minimumSpeed = document.getElementById("minimum-speed");
+const minimumStat = document.getElementById("minimum-stat-filter");
+const minimumValue = document.getElementById("minimum-stat-value");
+const regulationFilter = document.getElementById("regulation-filter");
+const battleFormat = document.getElementById("battle-format");
+const usageNote = document.getElementById("usage-note");
+let usageNoticeTimer;
+let lastUsageNoticeKey = "";
+function updateUsageNotice(regulation, usage, format, showUsage) {
+  if (!showUsage || usage?.month) {
+    clearTimeout(usageNoticeTimer);
+    usageNote.hidden = true;
+    lastUsageNoticeKey = "";
+    return;
+  }
+  const key = `${regulation.name}:${format}`;
+  if (key === lastUsageNoticeKey) return;
+  lastUsageNoticeKey = key;
+  clearTimeout(usageNoticeTimer);
+  usageNote.textContent = `${regulation.name} usage is not published yet.`;
+  usageNote.hidden = false;
+  usageNote.classList.remove("empty-notice");
+  void usageNote.offsetWidth;
+  usageNote.classList.add("empty-notice");
+  usageNoticeTimer = setTimeout(() => { usageNote.hidden = true; }, 4200);
+}
+const header = document.querySelector(".homepagebar");
+new ResizeObserver(() => document.documentElement.style.setProperty("--homepage-header-height", `${header.getBoundingClientRect().height}px`)).observe(header);
+let competitiveData;
+function loadCompetitiveData() {
+  if (!competitiveData) competitiveData = fetch("data/competitive.json").then(response => {
+    if (!response.ok) throw new Error("Competitive data unavailable");
+    return response.json();
+  }).catch(error => { competitiveData = null; throw error; });
+  return competitiveData;
+}
+function competitiveName(name) {
+  // PokéAPI explicitly names these default forms; Showdown uses the species name.
+  return name.replace(/-(incarnate|altered|ordinary|disguised|amped|red-striped|plant|shield|male|midday|solo|standard|land|normal|baile|full-belly|two-segment|family-of-four)$/, "").replace(/[^a-z0-9]/g, "");
+}
+function minimum(input) { return input.value.trim() && Number.isFinite(Number(input.value)) ? Math.max(0, Number(input.value)) : null; }
 sortFilter.value = window.CompDexSettings.get().defaultSort;
+let sortDirection = window.CompDexSettings.get().sortDirection;
+const sortDirectionButton = document.getElementById("sort-direction");
+function syncSortDirection() {
+  sortDirectionButton.textContent = sortDirection === "asc" ? "↑" : "↓";
+  const statSort = !["id", "name"].includes(sortFilter.value);
+  sortDirectionButton.setAttribute("aria-label", statSort
+    ? sortDirection === "asc" ? "Highest first; switch to lowest first" : "Lowest first; switch to highest first"
+    : sortDirection === "asc" ? "Ascending order; switch to descending" : "Descending order; switch to ascending");
+}
+syncSortDirection();
+let statSortData;
+function loadStatSortData() {
+  if (!statSortData) statSortData = fetch("https://raw.githubusercontent.com/PokeAPI/pokeapi/master/data/v2/csv/pokemon_stats.csv")
+    .then(response => { if (!response.ok) throw new Error("Stat data unavailable"); return response.text(); })
+    .then(text => {
+      const stats = new Map();
+      const names = [null, "hp", "attack", "defense", "special-attack", "special-defense", "speed"];
+      for (const line of text.trim().split(/\r?\n/).slice(1)) {
+        const [id, stat, value] = line.split(",").map(Number);
+        if (!names[stat] || !Number.isFinite(value)) continue;
+        if (!stats.has(id)) stats.set(id, { total: 0 });
+        stats.get(id)[names[stat]] = value;
+        stats.get(id).total += value;
+      }
+      return stats;
+    }).catch(error => { statSortData = null; throw error; });
+  return statSortData;
+}
 const favoritesFilter = document.getElementById("favorites-filter");
 const favoritesNotice = document.getElementById("favorites-notice");
 const favoritesStorageKey = "compdex.favorites.v1";
@@ -121,6 +271,7 @@ function createFilterDropdown(select, isType = false) {
   trigger.setAttribute("aria-controls", menu.id);
   select.before(wrapper);
   wrapper.append(trigger, menu);
+  if (select === regulationFilter) wrapper.append(usageNote);
   select.hidden = true;
   const label = document.querySelector(`label[for="${select.id}"]`);
   if (label) label.htmlFor = trigger.id;
@@ -156,7 +307,7 @@ function createFilterDropdown(select, isType = false) {
       badge.textContent = option.textContent;
       trigger.append(badge);
     } else trigger.textContent = select === generationFilter && option.value
-      ? `Generation ${option.textContent}` : option.textContent;
+      ? `Generation ${option.textContent}` : [sortFilter, minimumStat].includes(select) ? statLabels[option.value] || option.textContent : option.textContent;
     trigger.setAttribute("aria-label", `${select.getAttribute("aria-label") || "Sort by"}: ${option.textContent}`);
     buttons.forEach((button, index) => button.setAttribute("aria-checked", String(options[index].value === select.value)));
   }
@@ -167,6 +318,12 @@ function createFilterDropdown(select, isType = false) {
   }
   function open() {
     filterDropdowns.forEach(dropdown => dropdown.close());
+    const bounds = trigger.getBoundingClientRect();
+    const above = bounds.top - header.getBoundingClientRect().height - 12;
+    const below = window.innerHeight - bounds.bottom - 12;
+    const opensUp = below < menu.scrollHeight && above > below;
+    wrapper.classList.toggle("opens-up", opensUp);
+    menu.style.maxHeight = `${Math.max(100, opensUp ? above : below)}px`;
     wrapper.classList.add("open");
     trigger.setAttribute("aria-expanded", "true");
     menu.inert = false;
@@ -196,6 +353,11 @@ createFilterDropdown(typeFilter, true);
 createFilterDropdown(secondTypeFilter, true);
 createFilterDropdown(generationFilter);
 createFilterDropdown(sortFilter);
+createFilterDropdown(minimumStat);
+createFilterDropdown(regulationFilter);
+createFilterDropdown(battleFormat);
+createFilterDropdown(categoryFilter);
+createFilterDropdown(gameFilter);
 
 function updatePageControls() {
   previousButton.disabled = loadingPage || currentPage <= 1;
@@ -231,8 +393,9 @@ async function fetchPokemon(url) {
       // Keep only what this page uses, rather than moves, descriptions, and every sprite.
       if (/\/pokemon\/[^/]+\/?$/.test(url)) return {
         id: data.id, name: data.name, species: data.species, types: data.types,
-        sprites: { front_default: data.sprites.front_default,
-          other: { "official-artwork": { front_default: data.sprites.other["official-artwork"].front_default } } },
+        stats: data.stats.map(entry => ({ name: entry.stat.name, value: entry.base_stat })),
+        sprites: { front_default: data.sprites.front_default, front_shiny: data.sprites.front_shiny,
+          other: { "official-artwork": { front_default: data.sprites.other["official-artwork"].front_default, front_shiny: data.sprites.other["official-artwork"].front_shiny } } },
       };
       if (/\/pokemon-species\/[^/]+\/?$/.test(url)) return { varieties: data.varieties, evolution_chain: data.evolution_chain };
       return data;
@@ -273,7 +436,10 @@ async function getGenerationPokemon(generation) {
 async function forEachLimited(items, visit) {
   let index = 0;
   await Promise.all(Array.from({ length: Math.min(6, items.length) }, async () => {
-    while (index < items.length) await visit(items[index++]);
+    while (index < items.length) {
+      const position = index++;
+      await visit(items[position], position);
+    }
   }));
 }
 
@@ -326,16 +492,26 @@ async function loadPage(page, replaceSearch = false) {
   const selectedType = typeFilter.value;
   const selectedSecondType = secondTypeFilter.value;
   const selectedSort = sortFilter.value;
+  const selectedDirection = sortDirection === "asc" ? 1 : -1;
   const selectedFavoritesOnly = favoritesOnly && favoriteIds.size > 0;
   const selectedFavoriteIds = new Set(favoriteIds);
   const selectedGeneration = generationFilter.value;
+  const selectedCategory = categoryFilter.value;
+  const selectedGame = gameFilter.value;
+  const speedMinimum = minimum(minimumSpeed);
+  const statMinimum = minimum(minimumValue);
+  const minimumStatName = minimumStat.value;
+  const selectedRegulation = regulationFilter.value || (selectedSort === "usage" ? "mc" : "");
+  const selectedFormat = battleFormat.value;
   const preferences = window.CompDexSettings.get();
+  const pageSize = preferences.pageSize;
+  if (totalResults !== null) totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   page = Math.max(1, Math.min(totalPages, Math.trunc(page)));
   loadingPage = true;
   updatePageControls();
   status.textContent = `Loading page ${page}…`;
   try {
-    const offset = (page - 1) * PAGE_SIZE;
+    const offset = (page - 1) * pageSize;
     let data;
     let evolutionSearchFailed = false;
     if (!filteredResults) {
@@ -343,13 +519,25 @@ async function loadPage(page, replaceSearch = false) {
       if (request !== pageRequest) return;
       if (!allPokemonNames.length) throw new Error("Search list unavailable");
       const number = pokemonNumber(query);
-      const [typeData, secondTypeData, generationNames, evolutionSearch] = await Promise.all([
+      const [typeData, secondTypeData, generationNames, evolutionSearch, statData, competitive, categories, games] = await Promise.all([
         selectedType ? fetchPokemon(`https://pokeapi.co/api/v2/type/${selectedType}`) : null,
         selectedSecondType ? fetchPokemon(`https://pokeapi.co/api/v2/type/${selectedSecondType}`) : null,
         selectedGeneration ? getGenerationPokemon(selectedGeneration) : null,
         getSearchEvolutionNames(query, number, preferences.includeEvolutions),
+        (statLabels[selectedSort] || speedMinimum !== null || statMinimum !== null) ? loadStatSortData() : null,
+        selectedRegulation ? loadCompetitiveData() : null,
+        selectedCategory ? loadCategoryData() : null,
+        selectedGame ? loadGameData() : null,
       ]);
       if (request !== pageRequest) return;
+      const gameSpecies = games ? new Set(games.games.find(game => game.id === selectedGame)?.species || []) : null;
+      const regulation = competitive?.regulations[selectedRegulation];
+      const legal = regulation ? new Set(regulation.legal) : null;
+      const usage = regulation?.formats[selectedFormat];
+      updateUsageNotice(regulation, usage, selectedFormat, selectedSort === "usage");
+      document.getElementById("regulation-filter-trigger").title = usage?.month
+        ? `${regulation.name} / ${selectedFormat} / ${usage.month} / Showdown ladder, 1630 rating cutoff`
+        : "";
       const typeNames = typeData ? new Set(typeData.pokemon.map(entry => entry.pokemon.name)) : null;
       const secondTypeNames = secondTypeData ? new Set(secondTypeData.pokemon.map(entry => entry.pokemon.name)) : null;
       evolutionSearchFailed = evolutionSearch.failed;
@@ -362,38 +550,70 @@ async function loadPage(page, replaceSearch = false) {
           && (preferences.includeAltForms || pokemon.id < 10000)
           && (!selectedFavoritesOnly || selectedFavoriteIds.has(pokemon.id))
           && (!secondTypeNames || secondTypeNames.has(pokemon.api))
-          && (!generationNames || generationNames.has(pokemon.api));
+          && (!generationNames || generationNames.has(pokemon.api))
+          && (!gameSpecies || gameSpecies.has(games.pokemonSpecies[pokemon.id]))
+          && (!legal || legal.has(competitiveName(pokemon.api)))
+          && (!selectedCategory || (selectedCategory === "ordinary"
+            ? categories[pokemon.id] === 0
+            : Boolean(categories[pokemon.id] & categoryBits[selectedCategory])))
+          && (speedMinimum === null || (statData.get(pokemon.id)?.speed ?? -1) >= speedMinimum)
+          && (statMinimum === null || (statData.get(pokemon.id)?.[minimumStatName] ?? -1) >= statMinimum);
       });
       matches.sort((a, b) => {
-        if (selectedSort === "az") return a.displayName.localeCompare(b.displayName) || a.id - b.id;
-        if (selectedSort === "za") return b.displayName.localeCompare(a.displayName) || a.id - b.id;
-        return selectedSort === "id-desc" ? b.id - a.id : a.id - b.id;
+        const relevance = nameMatchRank(a, query, number) - nameMatchRank(b, query, number);
+        if (relevance) return relevance;
+        if (selectedSort === "name") return selectedDirection * a.displayName.localeCompare(b.displayName) || a.id - b.id;
+        if (selectedSort === "id") return selectedDirection * (a.id - b.id);
+        const first = selectedSort === "usage" ? usage?.usage[competitiveName(a.api)] : statData.get(a.id)?.[selectedSort];
+        const second = selectedSort === "usage" ? usage?.usage[competitiveName(b.api)] : statData.get(b.id)?.[selectedSort];
+        if (first === undefined || second === undefined) return first === second ? a.id - b.id : first === undefined ? 1 : -1;
+        return -selectedDirection * (first - second) || a.id - b.id;
       });
-      filteredResults = { matches, evolutionSearchFailed };
+      filteredResults = { matches, evolutionSearchFailed, usage };
     }
     evolutionSearchFailed = filteredResults.evolutionSearchFailed;
     data = {
         count: filteredResults.matches.length,
-        results: filteredResults.matches.slice(offset, offset + PAGE_SIZE).map(pokemon => ({
+        results: filteredResults.matches.slice(offset, offset + pageSize).map(pokemon => ({
           name: pokemon.api,
           url: `https://pokeapi.co/api/v2/pokemon/${pokemon.id}`,
         })),
       };
     if (request !== pageRequest) return;
-    const cards = await Promise.all(data.results.map(async (pokemon, index) => {
+    const cards = new Array(data.results.length);
+    await forEachLimited(data.results, async (pokemon, index) => {
       const card = document.createElement("article");
       card.className = "pokecard";
       card.style.animationDelay = `${(index % 5) * 25}ms`;
+      card.addEventListener("animationend", event => {
+        if (event.target === card) {
+          card.style.animation = "none";
+          card.style.animationDelay = "";
+        }
+      }, { once: true });
       const link = document.createElement("a");
       link.className = "pokecard-link";
       link.href = `pokemoninfo.html?pokemon=${encodeURIComponent(pokemon.name)}`;
       try {
         const details = await fetchPokemon(pokemon.url);
-        const officialArtwork = details.sprites.other["official-artwork"].front_default;
-        const artwork = preferences.artwork === "pixel" ? details.sprites.front_default || officialArtwork : officialArtwork || details.sprites.front_default;
-        const pixelArtwork = artwork && artwork === details.sprites.front_default;
-        const displayArtwork = pixelArtwork ? await cropPixelArtwork(artwork) : artwork;
-        link.innerHTML = `${artwork ? `<img class="${pixelArtwork ? 'pixel-artwork' : 'official-artwork'}" src="${displayArtwork}" alt="${pokemon.name}" loading="lazy" />` : '<div class="artwork-placeholder">No artwork</div>'}
+        const baseStatTotal = details.stats.reduce((sum, entry) => sum + entry.value, 0);
+        // Add minimum stats after the sort stat, showing each stat only once.
+        const displayedStats = ["total"];
+        if (statLabels[selectedSort] && selectedSort !== "total") displayedStats.push(selectedSort);
+        if (speedMinimum !== null) displayedStats.push("speed");
+        if (statMinimum !== null) displayedStats.push(minimumStatName);
+        const statLines = [...new Set(displayedStats)].map(stat => {
+          if (stat === "total") {
+            const value = filteredResults.usage?.usage[competitiveName(pokemon.name)];
+            const usage = selectedSort === "usage" ? `<span class="card-usage">Usage: ${value === undefined ? "\u2014" : value.toFixed(2) + "%"}</span>` : "";
+            return `<span class="card-stat-first-line">BST: ${baseStatTotal}${usage}</span>`;
+          }
+          const value = details.stats.find(entry => entry.name === stat)?.value;
+          return `<span>${statLabels[stat]}: ${value ?? "\u2014"}</span>`;
+        });
+        card.style.setProperty("--extra-stat-lines", statLines.length - 1);
+        const { source: artwork, pixel: pixelArtwork } = getPokemonArtwork(details.sprites, preferences);
+        link.innerHTML = `<span class="card-stat">${statLines.join("")}</span>${artwork ? `<img class="${pixelArtwork ? 'pixel-artwork' : 'official-artwork'}" data-artwork-source="${artwork}" alt="${pokemon.name}" decoding="async" />` : '<div class="artwork-placeholder">No artwork</div>'}
           <p><span class="pokemon-name">${reverseTransformName(details.name)}</span><span class="pokemon-id">#${details.id}</span></p>
           <div class="card-types">${details.types.map(({type}) => `<span class="type-badge type-${type.name}">${type.name}</span>`).join("")}</div>`;
       } catch {
@@ -401,12 +621,15 @@ async function loadPage(page, replaceSearch = false) {
       }
       card.append(link);
       addFavoriteButton(card, Number(pokemon.url.split("/").filter(Boolean).pop()), pokemon.name);
-      return card;
-    }));
+      cards[index] = card;
+    });
     if (request !== pageRequest) return;
+    releaseCardArtwork();
     grid.replaceChildren(...cards);
+    deferOffscreenCards(cards);
+    observeCardArtwork();
     currentPage = page;
-    totalPages = Math.max(1, Math.ceil(data.count / PAGE_SIZE));
+    totalPages = Math.max(1, Math.ceil(data.count / pageSize));
     totalResults = data.count;
     resultsPending = false;
     updateFavoritesNotice();
@@ -460,8 +683,35 @@ function filterHomepage() {
 nameFilter.addEventListener("input", filterHomepage);
 typeFilter.addEventListener("change", filterHomepage);
 secondTypeFilter.addEventListener("change", filterHomepage);
-sortFilter.addEventListener("change", filterHomepage);
+sortFilter.addEventListener("change", () => {
+  if (sortFilter.value === "usage" && !regulationFilter.value) {
+    regulationFilter.value = "mc";
+    filterDropdowns.forEach(dropdown => dropdown.sync());
+  }
+  syncSortDirection(); filterHomepage();
+});
+sortDirectionButton.addEventListener("click", () => {
+  sortDirection = sortDirection === "asc" ? "desc" : "asc";
+  syncSortDirection();
+  filterHomepage();
+});
 generationFilter.addEventListener("change", filterHomepage);
+minimumSpeed.addEventListener("input", filterHomepage);
+minimumValue.addEventListener("input", filterHomepage);
+minimumStat.addEventListener("change", filterHomepage);
+categoryFilter.addEventListener("change", filterHomepage);
+gameFilter.addEventListener("change", filterHomepage);
+regulationFilter.addEventListener("change", () => {
+  lastUsageNoticeKey = "";
+  if (regulationFilter.value === "mb") {
+    sortFilter.value = "usage";
+    sortDirection = "asc";
+    syncSortDirection();
+    filterDropdowns.forEach(dropdown => dropdown.sync());
+  }
+  filterHomepage();
+});
+battleFormat.addEventListener("change", filterHomepage);
 favoritesFilter.addEventListener("click", () => {
   if (favoriteIds.size === 0) {
     favoritesOnly = false;
@@ -478,10 +728,19 @@ favoritesFilter.addEventListener("click", () => {
   filterHomepage();
 });
 document.getElementById("reset-filters").addEventListener("click", () => {
+  categoryFilter.value = "";
+  gameFilter.value = "";
+  minimumSpeed.value = "";
+  minimumValue.value = "";
+  minimumStat.value = "total";
+  regulationFilter.value = "";
+  battleFormat.value = "doubles";
   nameFilter.value = "";
   typeFilter.value = "";
   secondTypeFilter.value = "";
   sortFilter.value = window.CompDexSettings.get().defaultSort;
+  sortDirection = window.CompDexSettings.get().sortDirection;
+  syncSortDirection();
   generationFilter.value = "";
   favoritesOnly = false;
   showEmptyFavoritesNotice = false;
@@ -493,8 +752,15 @@ window.addEventListener("compdex:settings-changed", event => {
   const { previous, settings } = event.detail;
   if (previous.defaultSort !== settings.defaultSort) {
     sortFilter.value = settings.defaultSort;
+    syncSortDirection();
     filterDropdowns.forEach(dropdown => dropdown.sync());
   }
-  if (["defaultSort", "artwork", "includeEvolutions", "includeAltForms"].some(key => previous[key] !== settings[key])) filterHomepage();
+  if (previous.sortDirection !== settings.sortDirection) { sortDirection = settings.sortDirection; syncSortDirection(); }
+  if (["defaultSort", "sortDirection", "artwork", "shiny", "includeEvolutions", "includeAltForms"].some(key => previous[key] !== settings[key])) filterHomepage();
+  else if (previous.pageSize !== settings.pageSize) {
+    // Keep the matched list, but restart pagination with the new count.
+    clearTimeout(filterTimer);
+    loadPage(1, true);
+  }
 });
 loadPage(1);
