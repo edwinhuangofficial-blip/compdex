@@ -1,7 +1,9 @@
 <!doctype html>
 <html>
-  <head>
+  <head><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="pokemoninfo.css" />
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <!--adds custom font-->
@@ -10,6 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="settings.js"></script>
     <script src="fetchapi.js"></script>
     <title>Pokemon Info</title>
     <!--website title-->
@@ -18,35 +21,47 @@
     <!--same bar but the title takes u home-->
     <div class="homepagebar">
       <div class="bar-left">
-        <h2 id="homebutton" onclick="window.location.replace('index.html');">CompDex</h2>
-        <h3>Pokemon Info</h3>
+        <h2 id="homebutton" onclick="window.location.replace('index.html');"><img class="site-logo" src="favicon.svg" alt="" /> CompDex</h2>
+        <h3 class="page-label">Pokemon Info</h3>
       </div>
       <div class="bar-mid">
-        <!--search bar-->
         <div class="searchbarbut">
-        <input type="text" id="searchbarid" placeholder="Search Pokemon..." autocomplete="off" />
-        <button id="searchbutton" onclick="pokeSearch()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="15"
-            height="15"
-            viewBox="0 0 20 20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <circle cx="10" cy="10" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-        </button>
-        <div id="search-dropdown"></div>
+          <div class="search-input-wrap">
+            <input type="search" id="searchbarid" placeholder="Search name or #..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" />
+            <button type="button" id="clear-search" aria-label="Clear search">
+              ×
+            </button>
+          </div>
+          <button id="searchbutton" onclick="pokeSearch()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="10" cy="10" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+          <div id="search-dropdown"></div>
         </div>
       </div>
+
       <div class="bar-right">
-        <button>Settings</button>
+        <button id="settings-button" type="button">Settings</button>
       </div>
     </div>
     <div id="pokeinfo"></div>
+    <form id="pokemon-number-form" class="pokemon-number-nav" novalidate>
+      <span id="pokemon-number-status" role="status"></span>
+      <button id="previous-pokemon" type="button" disabled>Previous</button>
+      <label for="pokemon-number">Pokémon #</label>
+      <input id="pokemon-number" type="number" min="1" step="1" required disabled aria-label="Pokémon number" />
+      <button id="next-pokemon" type="button" disabled>Next</button>
+    </form>
     <div id="ability-tooltip"></div>
     <script>
       const pokename = new URLSearchParams(window.location.search).get(
@@ -54,6 +69,27 @@
       );
 
       const abilityCache = {}
+      let currentPokemonData = null;
+      function updateInfoArtwork() {
+        if (!currentPokemonData) return;
+        const pixel = window.CompDexSettings.get().artwork === "pixel";
+        const official = currentPokemonData.sprites.other["official-artwork"].front_default;
+        const sprite = currentPokemonData.sprites.front_default;
+        const image = document.getElementById("pokemon-main-artwork");
+        if (!image) return;
+        const source = pixel ? sprite || official : official || sprite;
+        image.hidden = !source;
+        if (source) image.src = source;
+        image.classList.toggle("pixel-artwork", Boolean(source && source === sprite));
+        if (source && source === sprite) cropPixelArtwork(source).then(cropped => {
+          if (image.getAttribute("src") === source) image.src = cropped;
+        });
+        const secondary = document.getElementById("pokemon-pixel-artwork");
+        secondary.hidden = pixel || !sprite;
+        if (!secondary.hidden) cropPixelArtwork(sprite).then(cropped => {
+          if (secondary.getAttribute("src") === sprite) secondary.src = cropped;
+        });
+      }
 
       async function loadPokemon() {
         const response = await fetch(
@@ -64,6 +100,11 @@
           return;
         }
         const data = await response.json();
+        currentPokemonData = data;
+        const numberInput = document.getElementById("pokemon-number");
+        numberInput.value = data.id;
+        numberInput.disabled = false;
+        updatePokemonNavigation();
 
         const info = document.getElementById("pokeinfo");
 
@@ -169,12 +210,12 @@
             .replace("paldea", "paldean")
             .replace(/(\w+) (alolan|galarian|hisuian|paldean|mega|primal)/, "$2 $1")
             }</h1>
-          <h2>Pokemon #${data.id}</h2>
+          <h2>#${data.id}</h2>
         </div>
         <div class="sprite-stats">
           <div class="sprites">
-            <img src="${data.sprites.other["official-artwork"].front_default}"/>
-            <img src="${data.sprites.front_default}"/>
+            <img id="pokemon-main-artwork" alt="${data.name}" />
+            <img id="pokemon-pixel-artwork" class="pixel-artwork" src="${data.sprites.front_default}" alt="${data.name} pixel sprite" />
           </div>
             <div class="stats">
               <div class="stat-row">
@@ -232,6 +273,7 @@
         ${resistancesList.length > 0 ? `<h2>Resistances &nbsp;${resistancesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}x</span>`).join(" ")}</h2>` : ""}
         ${immunitiesList.length > 0 ? `<h2>Immunities &nbsp;${immunitiesList.map((t) => (t === "ground" && abilities.includes("levitate") ? "ground" : t)).map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}${abilities.includes("levitate") ? " *if levitate is active" : ""}</h2>` : ""}
         `;
+        updateInfoArtwork();
       }
       
       function showAbilityTooltip(event, abilityName){
@@ -242,10 +284,9 @@
         } else{
           tooltip.textContent = "Loading...";
         }
-        const zoom = parseFloat(getComputedStyle(document.body).zoom);
         tooltip.classList.add("visible");
-        tooltip.style.left = (event.clientX/zoom + 5) + "px";
-        tooltip.style.top = ((event.clientY - tooltip.offsetHeight)/zoom) - 10 + "px";
+        tooltip.style.left = Math.max(8, Math.min(event.clientX + 5, window.innerWidth - tooltip.offsetWidth - 8)) + "px";
+        tooltip.style.top = Math.max(8, event.clientY - tooltip.offsetHeight - 10) + "px";
       }
 
       function hideAbilityTooltip(){
@@ -253,7 +294,78 @@
         tooltip.classList.remove("visible");
       }
 
+      let navigatingNumber = false;
+      let currentPokemonNumber = 1;
+      let maxPokemonNumber = 1;
+      let pokemonNavigationList = [];
+      async function updatePokemonNavigation() {
+        const input = document.getElementById("pokemon-number");
+        currentPokemonNumber = Number(input.value);
+        await pokemonNamesReady;
+        pokemonNavigationList = [...allPokemonNames].sort((a, b) => a.id - b.id);
+        const numbers = pokemonNavigationList.map(p => p.id);
+        if (!numbers.length) return;
+        maxPokemonNumber = Math.max(...numbers);
+        input.max = maxPokemonNumber;
+        document.getElementById("previous-pokemon").disabled = currentPokemonNumber <= 1;
+        document.getElementById("next-pokemon").disabled = currentPokemonNumber >= maxPokemonNumber;
+      }
+      async function goToPokemonNumber() {
+        const input = document.getElementById("pokemon-number");
+        if (navigatingNumber || !input.value.trim()) return;
+        navigatingNumber = true;
+        input.disabled = true;
+        document.getElementById("previous-pokemon").disabled = true;
+        document.getElementById("next-pokemon").disabled = true;
+        const status = document.getElementById("pokemon-number-status");
+        status.textContent = "Loading…";
+        try {
+          await pokemonNamesReady;
+          const defaultPokemon = allPokemonNames;
+          if (!defaultPokemon.length) throw new Error("Number list unavailable");
+          const max = Math.max(...defaultPokemon.map(p => p.id));
+          const number = Math.max(1, Math.min(max, Math.trunc(Number(input.value))));
+          if (!Number.isFinite(number)) throw new Error("Invalid number");
+          input.value = number;
+          input.max = max;
+          const pokemon = defaultPokemon.find(p => p.id === number);
+          if (!pokemon) throw new Error("Pokémon unavailable");
+          window.location.href = "pokemoninfo.html?pokemon=" + encodeURIComponent(pokemon.api);
+        } catch {
+          status.textContent = "Could not open Pokémon. Try again.";
+          input.disabled = false;
+          navigatingNumber = false;
+          document.getElementById("previous-pokemon").disabled = currentPokemonNumber <= 1;
+          document.getElementById("next-pokemon").disabled = currentPokemonNumber >= maxPokemonNumber;
+        }
+      }
+      document.getElementById("pokemon-number-form").addEventListener("submit", event => {
+        event.preventDefault();
+        goToPokemonNumber();
+      });
+      document.getElementById("pokemon-number").addEventListener("change", goToPokemonNumber);
+      document.getElementById("previous-pokemon").addEventListener("click", () => {
+        const previous = pokemonNavigationList.filter(p => p.id < currentPokemonNumber).pop();
+        if (!previous) return;
+        document.getElementById("pokemon-number").value = previous.id;
+        goToPokemonNumber();
+      });
+      document.getElementById("next-pokemon").addEventListener("click", () => {
+        const next = pokemonNavigationList.find(p => p.id > currentPokemonNumber);
+        if (!next) return;
+        document.getElementById("pokemon-number").value = next.id;
+        goToPokemonNumber();
+      });
+      window.addEventListener("compdex:settings-changed", updateInfoArtwork);
       loadPokemon();
     </script>
   </body>
 </html>
+
+
+
+
+
+
+
+

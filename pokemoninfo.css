@@ -5,9 +5,9 @@ align-items: center;
 padding: 0px 16px;
 box-sizing:border-box;
 position: sticky; top: 0; 
-background: white; 
+background: var(--surface); 
 z-index: 100;
-border-bottom: 1px solid #856eea;
+border-bottom: 1px solid var(--accent);
 }
 
 #homebutton {
@@ -18,13 +18,8 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Rajdhani', serif;
-  zoom: 1.4;
 }
-@media (max-width: 1200px) {
-  body {
-    zoom: .93;
-  }
-}
+
 .bar-left {
 flex: 1;
 display: flex;
@@ -107,7 +102,7 @@ box-sizing:border-box;
 
 #searchbarid{
 width: 300px;
-height: 29px;
+height: 34px;
 font-size: 20px;
 border-radius: 5px;
 font-family: 'Rajdhani', serif;
@@ -198,8 +193,8 @@ position: relative;
   top: 100%;
   left: 0;
   width: 100%;
-  background: white;
-  border: 1px solid #856eea;
+  background: var(--surface);
+  border: 1px solid var(--accent);
   border-radius: 8px;
   z-index: 200;
   display: none;
@@ -222,7 +217,7 @@ position: relative;
 }
 
 .dropdown-item:hover {
-  background: #f0edff;
+  background: var(--accent-subtle);
 }
 
 .dropdown-item img {
@@ -237,8 +232,8 @@ position: relative;
 }
 
 .dropdown-item.highlighted {
-  background: #f0edff;
-  outline: 2px solid #856eea; 
+  background: var(--accent-subtle);
+  outline: 2px solid var(--accent); 
 }
 
 /* [ADD] tooltip box — invisible until JS adds .visible */
@@ -257,5 +252,35 @@ position: relative;
 }
 
 #ability-tooltip.visible {             /* [ADD] JS adds this class to show it */
+  display: block;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+#searchbarid {
+  box-sizing: border-box;
+  padding-right: 32px;
+}
+
+#clear-search {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+
+  border: none;
+  background: transparent;
+  padding: 0;
+
+  font-size: 35px;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+  display: none;
+}
+#clear-search.visible {
   display: block;
 }

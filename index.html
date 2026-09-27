@@ -1,7 +1,9 @@
 <!doctype html>
 <html>
-  <head>
+  <head><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="shared.css" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -9,6 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="settings.js"></script>
     <script src="fetchapi.js"></script>
     <title>CompDex</title>
   </head>
@@ -16,19 +19,24 @@
     <div class="homepagebar">
       <div class="bar-left">
         <h2 id="homebutton" onclick="window.location.replace('index.html')">
-          CompDex
+          <img class="site-logo" src="favicon.svg" alt="" /> CompDex
         </h2>
-        <h3>Home</h3>
+        <h3 class="page-label">Home</h3>
       </div>
 
       <div class="bar-mid">
         <div class="searchbarbut">
-          <input type="text" id="searchbarid" placeholder="Search Pokemon..." autocomplete="off" />
+          <div class="search-input-wrap">
+            <input type="search" id="searchbarid" placeholder="Search name or #..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" />
+            <button type="button" id="clear-search" aria-label="Clear search">
+              ×
+            </button>
+          </div>
           <button id="searchbutton" onclick="pokeSearch()">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="15"
-              height="15"
+              width="22"
+              height="22"
               viewBox="0 0 20 20"
               fill="none"
               stroke="currentColor"
@@ -43,80 +51,67 @@
       </div>
 
       <div class="bar-right">
-        <button onclick="">Settings</button
-        ><!--make this work later-->
+        <button id="settings-button" type="button">Settings</button><!--make this work later-->
       </div>
     </div>
-    <div id="poke-grid"></div>
-    <!--pokemon for the homepage-->
-    <div id="load"></div>
-    <!--loading trip to pre-load pokemon so its smooth infinite scrolling-->
-    <script>
-      let offset = 0;
-      let isLoading = false;
-      let reachedEnd = false;
-      async function loadGrid() {
-        if (isLoading || reachedEnd) {
-          return;
-        }
-
-        isLoading = true;
-        const response = await fetch(
-          "https://pokeapi.co/api/v2/pokemon?limit=60&offset=" + offset,
-        );
-        const data = await response.json();
-        const grid = document.getElementById("poke-grid");
-
-        if (!data.next) {
-          reachedEnd = true;
-        }
-        for (const pokemon of data.results) {
-          const card = document.createElement("div");
-          card.className = "pokecard";
-          card.innerHTML = `<p>${pokemon.name}</p>`;
-          card.onclick = () => {
-            window.location.href = "pokemoninfo.html?pokemon=" + pokemon.name;
-          };
-          grid.appendChild(card);
-          fetchCardData(card, pokemon.url);
-        }
-        offset += 60;
-        isLoading = false;
-      }
-
-      async function fetchCardData(card, url) {
-        const data = await (await fetch(url)).json();
-        const types = data.types.map((t) => t.type.name)
-
-        card.innerHTML = `
-          <img src="${data.sprites.other["official-artwork"].front_default}"/>
-          <p>#${data.id} ${data.name.replace(/-/g, " ")}</p>
-          <div style="display:flex; gap:13.5px; justify-content:center;">
-            ${types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}
-          </div>
-        `;
-        card.onclick = () => {
-          window.location.href = "pokemoninfo.html?pokemon=" + data.name;
-        };
-      }
-
-      const loadObserve = document.getElementById("load");
-      const observer = new IntersectionObserver(
-        async (entries) => {
-          if (entries[0].isIntersecting) {
-            await loadGrid();
-            if (reachedEnd) {
-              observer.disconnect();
-            } else {
-              observer.unobserve(loadObserve);
-              observer.observe(loadObserve);
-            }
-          }
-        },
-        { rootMargin: "900px" },
-      );
-
-      observer.observe(document.getElementById("load"));
-    </script>
+    <main>
+      <section class="homepage-filters" aria-label="Filter Pokémon">
+        <div class="mini-search-wrap">
+          <input id="name-filter" type="search" placeholder="Name…" aria-label="Filter Pokémon by name" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" />
+        </div>
+        <select id="type-filter" aria-label="Type I">
+          <option value="">Type I</option>
+        </select>
+        <select id="second-type-filter" aria-label="Type II">
+          <option value="">Type II</option>
+        </select>
+        <select id="generation-filter" aria-label="Generation" title="Generation in which the Pokémon species was introduced">
+          <option value="">Generation</option>
+        </select>
+        <label for="sort-filter">Sort by:</label>
+        <select id="sort-filter">
+          <option value="id">#</option>
+          <option value="az">A–Z</option>
+          <option value="za">Z–A</option>
+          <option value="id-desc"># reversed</option>
+        </select>
+        <div class="favorites-filter-wrap">
+          <button id="favorites-filter" type="button" aria-label="Show favorited Pokémon" aria-pressed="false" aria-describedby="favorites-notice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg></button>
+          <p id="favorites-notice" role="status" hidden></p>
+        </div>
+        <button id="reset-filters" type="button">Reset</button>
+        <div class="filter-summary" aria-live="polite">
+          <span id="filter-results">Results: —</span>
+          <form id="top-page-form" novalidate>
+            <label for="top-page-number">Page</label>
+            <input id="top-page-number" type="number" min="1" step="1" value="1" required aria-label="Top page number" />
+            <span id="top-page-total">/1</span>
+          </form>
+          <button id="top-previous-page" type="button" aria-label="Previous page" disabled></button>
+          <button id="top-next-page" type="button" aria-label="Next page" disabled></button>
+        </div>
+      </section>
+      <div id="poke-grid" aria-busy="true"></div>
+      <div class="grid-footer">
+      <p id="grid-status" role="status" aria-live="polite"></p>
+      <nav class="pagination" aria-label="Pokémon pages">
+        <button id="previous-page" type="button" disabled>Previous</button>
+        <form id="page-form" novalidate>
+          <label for="page-number">Page</label>
+          <input id="page-number" type="number" min="1" step="1" value="1" required />
+          <span id="page-total"></span>
+        </form>
+        <button id="next-page" type="button" disabled>Next</button>
+      </nav>
+      </div>
+    </main>
+    <script src="homepage.js"></script>
   </body>
 </html>
+
+
+
+
+
+
+
