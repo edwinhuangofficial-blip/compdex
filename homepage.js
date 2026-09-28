@@ -12,6 +12,7 @@ const grid = document.getElementById("poke-grid");
 const visibleArtwork = new WeakSet();
 const pendingArtwork = new WeakSet();
 const artworkObjectUrls = new WeakMap();
+const cardArtworkSprites = new WeakMap();
 const artworkQueue = [];
 let activeArtworkRequests = 0;
 function releaseImageArtwork(image) {
@@ -37,7 +38,7 @@ function pumpCardArtwork() {
     const request = image.dataset.animated === 'true' ? Promise.resolve(source)
       : image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source);
     request.then(thumbnail => {
-      if (image.isConnected && visibleArtwork.has(image)) {
+      if (image.isConnected && visibleArtwork.has(image) && image.dataset.artworkSource === source) {
         releaseImageArtwork(image);
         const source = thumbnail instanceof Blob ? URL.createObjectURL(thumbnail) : thumbnail;
         if (thumbnail instanceof Blob) artworkObjectUrls.set(image, source);
@@ -46,6 +47,7 @@ function pumpCardArtwork() {
     }).finally(() => {
       pendingArtwork.delete(image);
       activeArtworkRequests--;
+      if (image.isConnected && visibleArtwork.has(image) && !image.hasAttribute("src")) queueCardArtwork(image);
       pumpCardArtwork();
     });
   }
@@ -161,6 +163,62 @@ function clipResultsAtToolbar() {
     const clip = hiddenHeight > 0 ? `inset(${hiddenHeight}px -100px -100px -100px)` : '';
     if (element.style.clipPath !== clip) element.style.clipPath = clip;
   });
+}
+function installCardArtworkFallback(image) {
+  image.addEventListener("error", () => {
+    const fallback = image.dataset.artworkFallback;
+    if (!fallback || image.getAttribute("src") === fallback) return;
+    releaseImageArtwork(image);
+    image.className = "official-artwork";
+    image.src = fallback;
+  });
+}
+function refreshCardArtwork(preferences, replayAnimation = false) {
+  grid.querySelectorAll(".pokecard").forEach(card => {
+    const sprites = cardArtworkSprites.get(card);
+    if (!sprites) return;
+    const link = card.querySelector(".pokecard-link");
+    let image = link.querySelector("img[data-artwork-source]");
+    const { source, pixel, animated, fallback } = getPokemonArtwork(sprites, preferences);
+    if (!source) {
+      if (image) {
+        artworkObserver?.unobserve(image);
+        visibleArtwork.delete(image);
+        releaseImageArtwork(image);
+        image.replaceWith(Object.assign(document.createElement("div"), { className: "artwork-placeholder", textContent: "No artwork" }));
+      }
+      return;
+    }
+    const isNew = !image;
+    if (isNew) {
+      image = document.createElement("img");
+      image.alt = card.dataset.pokemonName;
+      image.decoding = "async";
+      link.querySelector(".artwork-placeholder")?.replaceWith(image);
+      installCardArtworkFallback(image);
+    }
+    const changed = isNew || image.dataset.artworkSource !== source || image.dataset.animated !== String(animated);
+    if (changed) releaseImageArtwork(image);
+    image.dataset.artworkSource = source;
+    image.dataset.animated = String(animated);
+    image.dataset.artworkFallback = fallback && fallback !== source ? fallback : "";
+    if (changed) image.className = pixel ? "pixel-artwork" : "official-artwork";
+    if (isNew) {
+      if (artworkObserver) artworkObserver.observe(image);
+      else visibleArtwork.add(image);
+    }
+    if (changed && visibleArtwork.has(image)) queueCardArtwork(image);
+  });
+  if (replayAnimation) {
+    const cards = grid.querySelectorAll(".pokecard");
+    cards.forEach(card => { card.style.animation = "none"; });
+    // Restart the original CSS animation without rebuilding or remeasuring cards.
+    void grid.offsetWidth;
+    cards.forEach((card, index) => {
+      card.style.removeProperty("animation");
+      card.style.animationDelay = `${(index % 5) * 25}ms`;
+    });
+  }
 }
 let clipFrame;
 function scheduleResultsClip() {
@@ -784,19 +842,21 @@ async function loadPage(page, replaceSearch = false) {
     await forEachLimited(data.results, async (pokemon, index) => {
       const card = document.createElement("article");
       card.className = "pokecard";
+      card.dataset.pokemonName = pokemon.name;
       card.style.animationDelay = `${(index % 5) * 25}ms`;
       card.addEventListener("animationend", event => {
         if (event.target === card) {
           card.style.animation = "none";
           card.style.animationDelay = "";
         }
-      }, { once: true });
+      });
       const link = document.createElement("a");
       link.className = "pokecard-link";
       link.href = `pokemoninfo.html?pokemon=${encodeURIComponent(pokemon.name)}`;
       try {
         const details = await fetchPokemon(pokemon.url);
         if (!isCurrent()) return;
+        cardArtworkSprites.set(card, details.sprites);
         const baseStatTotal = details.stats.reduce((sum, entry) => sum + entry.value, 0);
         // Add minimum stats after the sort stat, showing each stat only once.
         const displayedStats = ["total"];
@@ -818,11 +878,9 @@ async function loadPage(page, replaceSearch = false) {
           <p><span class="pokemon-name">${reverseTransformName(details.name)}</span><span class="pokemon-id">#${details.id}</span></p>
           <div class="card-types">${details.types.map(({type}) => `<span class="type-badge type-${type.name}">${type.name}</span>`).join("")}</div>`;
         const artworkImage = link.querySelector('img');
-        if (artworkImage && fallback && fallback !== artwork) {
-          artworkImage.addEventListener('error', () => {
-            artworkImage.className = 'official-artwork';
-            artworkImage.src = fallback;
-          }, { once: true });
+        if (artworkImage) {
+          artworkImage.dataset.artworkFallback = fallback && fallback !== artwork ? fallback : "";
+          installCardArtworkFallback(artworkImage);
         }
       } catch {
         link.textContent = `${reverseTransformName(pokemon.name)} — details unavailable`;
@@ -836,6 +894,7 @@ async function loadPage(page, replaceSearch = false) {
     grid.replaceChildren(...cards);
     deferOffscreenCards(cards);
     observeCardArtwork();
+    refreshCardArtwork(window.CompDexSettings.get());
     currentPage = page;
     totalPages = Math.max(1, Math.ceil(data.count / pageSize));
     totalResults = data.count;
@@ -998,7 +1057,7 @@ window.addEventListener("compdex:settings-changed", event => {
       loadPage(1, true);
     }
     else if (previous.artwork !== settings.artwork || previous.shiny !== settings.shiny) {
-      loadPage(currentPage);
+      refreshCardArtwork(settings, true);
     }
   }
 });
