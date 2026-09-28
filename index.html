@@ -58,10 +58,6 @@
     <main class="homepage-layout">
       <section class="homepage-filters" aria-label="Filter Pokémon">
         <div class="sidebar-filter-actions">
-        <div class="favorites-filter-wrap">
-          <button id="favorites-filter" type="button" aria-label="Show favorited Pokémon" aria-pressed="false" aria-describedby="favorites-notice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg></button>
-          <p id="favorites-notice" role="status" hidden></p>
-        </div>
         <button id="reset-filters" type="button">Reset All Filters</button>
         </div>
         <div class="mini-search-wrap">
@@ -108,6 +104,16 @@
         <select id="game-filter" aria-label="Game Pokedex" title="Filters by game Pokedex membership, not catch locations or transfer legality"><option value="">Game</option><option value="1">Red / Blue</option><option value="2">Yellow</option><option value="3">Gold / Silver</option><option value="4">Crystal</option><option value="5">Ruby / Sapphire</option><option value="6">Emerald</option><option value="7">FireRed / LeafGreen</option><option value="8">Diamond / Pearl</option><option value="9">Platinum</option><option value="10">HeartGold / SoulSilver</option><option value="11">Black / White</option><option value="14">Black 2 / White 2</option><option value="15">X / Y</option><option value="16">Omega Ruby / Alpha Sapphire</option><option value="17">Sun / Moon</option><option value="18">Ultra Sun / Ultra Moon</option><option value="19">Let's Go Pikachu / Eevee</option><option value="20">Sword / Shield</option><option value="23">Brilliant Diamond / Shining Pearl</option><option value="24">Legends: Arceus</option><option value="25">Scarlet / Violet</option><option value="30">Legends: Z-A</option><option value="32">Champions</option></select>
       </section>
       <div class="homepage-results">
+        <div class="index-toolbar">
+        <div class="index-display-controls" aria-label="Pokémon card appearance">
+          <div class="favorites-filter-wrap">
+            <button id="favorites-filter" type="button" aria-label="Show favorited Pokémon" aria-pressed="false" aria-describedby="favorites-notice"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg></button>
+            <p id="favorites-notice" role="status" hidden></p>
+          </div>
+          <select id="index-artwork" aria-label="Artwork style"><option value="hd">HD artwork</option><option value="pixel">Pixel art</option><option value="home">Home Model</option><option value="animated">3DS Model</option></select>
+          <label for="index-shiny">Shiny <input id="index-shiny" type="checkbox" /></label>
+          <label for="index-related" title="Include evolution relatives in search results">Related <input id="index-related" type="checkbox" /></label>
+        </div>
         <div class="filter-summary" aria-live="polite">
           <span id="filter-results">Results: —</span>
           <form id="top-page-form" novalidate>
@@ -117,6 +123,7 @@
           </form>
           <button id="top-previous-page" type="button" aria-label="Previous page" disabled></button>
           <button id="top-next-page" type="button" aria-label="Next page" disabled></button>
+        </div>
         </div>
       <div id="poke-grid" aria-busy="true"></div>
       <div class="grid-footer">

@@ -24,13 +24,33 @@ function reverseTransformName(apiName){
 }
 
 const pokemonCache = {};
+// Only these front-facing sprites are used by the index and info page.
+function compactPokemonSprites(sprites) {
+  const front = value => value && ({ front_default: value.front_default, front_shiny: value.front_shiny });
+  return { ...front(sprites), other: {
+    'official-artwork': front(sprites.other?.['official-artwork']),
+    home: front(sprites.other?.home),
+    showdown: front(sprites.other?.showdown),
+  } };
+}
 function getPokemonArtwork(sprites, preferences) {
   const official = sprites.other?.["official-artwork"];
   const hd = preferences.shiny ? official?.front_shiny : official?.front_default;
   const pixel = preferences.shiny ? sprites.front_shiny : sprites.front_default;
-  const source = (preferences.artwork === "pixel" ? pixel || hd : hd || pixel)
-    || (preferences.artwork === "pixel" ? sprites.front_default || official?.front_default : official?.front_default || sprites.front_default);
-  return { source, pixel: Boolean(source && (source === sprites.front_default || source === sprites.front_shiny)), sprite: pixel || sprites.front_default };
+  const field = preferences.shiny ? 'front_shiny' : 'front_default';
+  const choices = {
+    hd,
+    pixel,
+    home: sprites.other?.home?.[field],
+    animated: sprites.other?.showdown?.[field],
+  };
+  const selected = choices[preferences.artwork];
+  const fallback = hd || official?.front_default || pixel || sprites.front_default;
+  const source = selected || fallback;
+  return { source, fallback,
+    animated: Boolean(selected && preferences.artwork === 'animated'),
+    pixel: Boolean(source && (source === pixel || source === sprites.front_default)),
+    sprite: pixel || sprites.front_default };
 }
 async function createCardThumbnail(source) {
   // Decode HD artwork temporarily, then keep only a thumbnail in the card DOM.
@@ -50,7 +70,10 @@ async function createCardThumbnail(source) {
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/png");
+    bitmap.close();
+    bitmap = null;
+    // Encode asynchronously and avoid retaining a base64 copy in the JS heap.
+    return await new Promise(resolve => canvas.toBlob(blob => resolve(blob || source), "image/png"));
   } catch { return source; }
   finally {
     if (bitmap) bitmap.close();
@@ -105,6 +128,26 @@ function pixelArtworkBounds(pixels, width, height) {
   return right < left ? null : { x: left, y: top, width: right - left + 1, height: bottom - top + 1 };
 }
 const suggestionCacheOrder = new Map();
+const pendingSuggestions = new Map();
+function loadSuggestion(name) {
+  if (pokemonCache[name]) {
+    touchSuggestionCache(name);
+    return Promise.resolve(pokemonCache[name]);
+  }
+  if (pendingSuggestions.has(name)) return pendingSuggestions.get(name);
+  const request = fetch("https://pokeapi.co/api/v2/pokemon/" + name)
+    .then(response => {
+      if (!response.ok) throw new Error("Pokémon request failed");
+      return response.json();
+    }).then(data => {
+      const summary = { spriteCache: data.sprites.front_default, typeCache: data.types.map(t => t.type.name) };
+      pokemonCache[name] = summary;
+      touchSuggestionCache(name);
+      return summary;
+    }).finally(() => pendingSuggestions.delete(name));
+  pendingSuggestions.set(name, request);
+  return request;
+}
 function touchSuggestionCache(name) {
   suggestionCacheOrder.delete(name);
   suggestionCacheOrder.set(name, true);
@@ -180,19 +223,15 @@ async function updateDropdown(input) {
       `;
     }
     else {
-      fetch("https://pokeapi.co/api/v2/pokemon/" + pokemon.api)
-    .then(res => res.json())
-    .then(data => {
-      pokemonCache[pokemon.api] = {
-        spriteCache: data.sprites.front_default,
-        typeCache: data.types.map(t => t.type.name)
-      }
-      touchSuggestionCache(pokemon.api);
+      loadSuggestion(pokemon.api)
+    .then(summary => {
+      if (version !== dropdownVersion || !item.isConnected) return;
       item.innerHTML = `
-      <img src="${pokemonCache[pokemon.api].spriteCache}"/>
+      <img src="${summary.spriteCache}"/>
       <span class="dropdown-item-label"><span class="pokemon-name">${pokemon.displayName}</span> <span class="pokemon-id">#${pokemon.id}</span></span>
-      ${pokemonCache[pokemon.api].typeCache.map(t => `<span class="type-dropdown type-${t}">${t}</span>`).join("")}
+      ${summary.typeCache.map(t => `<span class="type-dropdown type-${t}">${t}</span>`).join("")}
       `}).catch(() => {
+        if (version !== dropdownVersion || !item.isConnected) return;
         item.innerHTML = `<span class="dropdown-item-label"><span class="pokemon-name">${pokemon.displayName}</span> <span class="pokemon-id">#${pokemon.id}</span></span>`;
       });
   }

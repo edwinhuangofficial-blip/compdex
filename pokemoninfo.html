@@ -101,7 +101,7 @@
           return;
         }
         const data = await response.json();
-        currentPokemonData = data;
+        currentPokemonData = { sprites: compactPokemonSprites(data.sprites) };
         const numberInput = document.getElementById("pokemon-number");
         numberInput.value = data.id;
         numberInput.disabled = false;
@@ -138,22 +138,23 @@
         let abilities = data.abilities.map((a) => a.ability.name);
   
 
-        for (const type of types) {
-          const typeData = await (
-            await fetch("https://pokeapi.co/api/v2/type/" + type)
-          ).json();
+        const typeRelations = await Promise.all(types.map(async type => {
+          const response = await fetch("https://pokeapi.co/api/v2/type/" + type);
+          return (await response.json()).damage_relations;
+        }));
+        for (const damageRelations of typeRelations) {
           //adds keys with multipliers for the typing that it takes in damage from
-          typeData.damage_relations.double_damage_from.forEach((t) => {
+          damageRelations.double_damage_from.forEach((t) => {
             typeMultipliers[t.name] = (typeMultipliers[t.name] ?? 1) * 2;
           });
-          typeData.damage_relations.half_damage_from.forEach((t) => {
+          damageRelations.half_damage_from.forEach((t) => {
             typeMultipliers[t.name] = (typeMultipliers[t.name] ?? 1) * 0.5;
           });
-          typeData.damage_relations.no_damage_from.forEach((t) => {
+          damageRelations.no_damage_from.forEach((t) => {
             typeMultipliers[t.name] = 0;
           });
           //adds keys for the types that it does damage to
-          typeData.damage_relations.double_damage_to.forEach((t) => {
+          damageRelations.double_damage_to.forEach((t) => {
             effectiveMultipliers[t.name] =
               (effectiveMultipliers[t.name] ?? 1) * 2;
           });
@@ -357,7 +358,9 @@
         document.getElementById("pokemon-number").value = next.id;
         goToPokemonNumber();
       });
-      window.addEventListener("compdex:settings-changed", updateInfoArtwork);
+      window.addEventListener("compdex:settings-changed", event => {
+        if (event.detail.previous.artwork !== event.detail.settings.artwork || event.detail.previous.shiny !== event.detail.settings.shiny) updateInfoArtwork();
+      });
       loadPokemon();
     </script>
     <footer class="site-bottom-bar" aria-label="Site footer"></footer>

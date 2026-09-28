@@ -70,16 +70,12 @@ input, select, button { color: inherit; }
 html[data-animations="off"] *, html[data-animations="off"] *::before, html[data-animations="off"] *::after, html[data-animations="off"] #settings-dialog::backdrop { animation: none !important; transition: none !important; }
 html[data-animations="off"] .pokecard:hover, html[data-animations="off"] .dropdown-item:hover, html[data-animations="off"] .dropdown-item.highlighted { transform: none; }
 html[data-animations="off"] #search-dropdown, html[data-animations="off"] .filter-menu { transform: none; }
-html[data-animations="reduced"] *, html[data-animations="reduced"] *::before, html[data-animations="reduced"] *::after, html[data-animations="reduced"] #settings-dialog::backdrop { animation-duration: 120ms !important; animation-delay: 0ms !important; transition-duration: 120ms !important; }
-html[data-animations="reduced"] .pokecard:hover, html[data-animations="reduced"] .dropdown-item:hover, html[data-animations="reduced"] .dropdown-item.highlighted { transform: none; }
-html[data-animations="reduced"] .pokecard { animation-name: reduced-card-fade; }
-html[data-animations="reduced"] #settings-dialog[open] { animation-name: reduced-panel-fade-in; }
-html[data-animations="reduced"] #settings-dialog[open].closing { animation-name: reduced-panel-fade-out; }
+html[data-animations="reduced"] *, html[data-animations="reduced"] *::before, html[data-animations="reduced"] *::after, html[data-animations="reduced"] #settings-dialog::backdrop { animation: none !important; transition: none !important; }
+html[data-animations="reduced"] .pokecard { animation: reduced-card-fade 120ms ease-out backwards !important; transition: background-color 120ms ease-out, box-shadow 120ms ease-out !important; }
+html[data-animations="reduced"] .pokecard:hover { transform: none; }
+html[data-animations="reduced"] .dropdown-item:hover, html[data-animations="reduced"] .dropdown-item.highlighted { transform: none; }
+html[data-animations="reduced"] #search-dropdown, html[data-animations="reduced"] .filter-menu { transform: none; }
 @keyframes reduced-card-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes reduced-panel-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes reduced-panel-fade-out { from { opacity: 1; } to { opacity: 0; } }
-html[data-animations="reduced"] #favorites-notice.empty-notice { animation-name: reduced-notice-fade; animation-duration: 4200ms !important; }
-@keyframes reduced-notice-fade { 0%, 100% { opacity: 0; } 12%, 75% { opacity: 1; } }
 @media (max-width: 420px) { .settings-row { gap: 8px; } .settings-row label { font-size: 14px; } .settings-row select { width: 125px; } }
 #settings-button, #share-button { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; font: inherit; font-size: 16px; font-weight: 600; color: var(--text); background: var(--surface); border: 2px solid var(--accent); border-radius: 8px; cursor: pointer; }
 #settings-button svg, #share-button svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linejoin: round; }
@@ -169,21 +165,22 @@ html[data-animations="reduced"] #favorites-notice.empty-notice { animation-name:
 .pokecard .type-badge {
   display: inline-block;
   box-sizing: border-box;
-  width: 56px;
-  padding: 4px;
+  width: auto;
+  min-width: 0;
+  padding: 5px 9px;
   font-size: 13px;
   line-height: 1.2;
   font-weight: bold;
-  border-radius: 5px;
+  border-radius: 7px;
   color: white;
   text-transform: capitalize;
   text-align: center;
-  text-shadow: 1px 1px 0 black;
-  box-shadow: 0 0 0 2px black, 0 0 0 4px white, 0 0 0 6px black;
+  text-shadow: 0 1px 1px rgb(0 0 0 / 40%);
+  box-shadow: none;
   vertical-align: middle;
   flex-shrink: 0;
 }
-.type-badge-multipliers { width: 90px; }
+.type-badge-multipliers { width: auto; }
 .type-badge, .type-badge-multipliers { margin-right: 8px; }
 .card-types .type-badge { margin-right: 0; }
 .type-dropdown { margin-right: 6px; }
@@ -196,8 +193,8 @@ html[data-animations="reduced"] #favorites-notice.empty-notice { animation-name:
   .dropdown-item-name { font-size: 21px; }
   .dropdown-item-label { font-size: 21px; }
   .type-badge, .type-dropdown, .type-badge-multipliers,
-  .pokecard .type-badge { width: 78px; padding: 5px 6px; font-size: 18px; border-radius: 7px; }
-  .type-badge-multipliers { width: 126px; }
+  .pokecard .type-badge { width: auto; padding: 5px 10px; font-size: 18px; border-radius: 7px; }
+  .type-badge-multipliers { width: auto; }
   #pokeinfo { padding: 0 22px 140px; }
   #notfoundbody { padding: 0 22px; }
   #pokeinfo img { width: 186px; }

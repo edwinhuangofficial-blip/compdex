@@ -11,8 +11,17 @@ let filteredResults = null;
 const grid = document.getElementById("poke-grid");
 const visibleArtwork = new WeakSet();
 const pendingArtwork = new WeakSet();
+const artworkObjectUrls = new WeakMap();
 const artworkQueue = [];
 let activeArtworkRequests = 0;
+function releaseImageArtwork(image) {
+  image.removeAttribute("src");
+  const url = artworkObjectUrls.get(image);
+  if (url) {
+    URL.revokeObjectURL(url);
+    artworkObjectUrls.delete(image);
+  }
+}
 function queueCardArtwork(image) {
   if (pendingArtwork.has(image) || image.hasAttribute("src")) return;
   pendingArtwork.add(image);
@@ -25,9 +34,15 @@ function pumpCardArtwork() {
     if (!image.isConnected || !visibleArtwork.has(image)) { pendingArtwork.delete(image); continue; }
     activeArtworkRequests++;
     const source = image.dataset.artworkSource;
-    const request = image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source);
+    const request = image.dataset.animated === 'true' ? Promise.resolve(source)
+      : image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source);
     request.then(thumbnail => {
-      if (image.isConnected && visibleArtwork.has(image)) image.src = thumbnail;
+      if (image.isConnected && visibleArtwork.has(image)) {
+        releaseImageArtwork(image);
+        const source = thumbnail instanceof Blob ? URL.createObjectURL(thumbnail) : thumbnail;
+        if (thumbnail instanceof Blob) artworkObjectUrls.set(image, source);
+        image.src = source;
+      }
     }).finally(() => {
       pendingArtwork.delete(image);
       activeArtworkRequests--;
@@ -38,13 +53,13 @@ function pumpCardArtwork() {
 const artworkObserver = typeof IntersectionObserver === "function" ? new IntersectionObserver(entries => {
   entries.forEach(({ target: image, isIntersecting }) => {
     if (isIntersecting) { visibleArtwork.add(image); queueCardArtwork(image); }
-    else { visibleArtwork.delete(image); image.removeAttribute("src"); }
+    else { visibleArtwork.delete(image); releaseImageArtwork(image); }
   });
 }, { rootMargin: "160px 0px" }) : null;
 function releaseCardArtwork() {
   if (artworkObserver) artworkObserver.disconnect();
   artworkQueue.length = 0;
-  grid.querySelectorAll("img").forEach(image => { visibleArtwork.delete(image); image.removeAttribute("src"); });
+  grid.querySelectorAll("img").forEach(image => { visibleArtwork.delete(image); releaseImageArtwork(image); });
 }
 function observeCardArtwork() {
   grid.querySelectorAll("img[data-artwork-source]").forEach(image => {
@@ -130,7 +145,40 @@ function updateUsageNotice(regulation, usage, format, showUsage) {
   usageNoticeTimer = setTimeout(() => { usageNote.hidden = true; }, 4200);
 }
 const header = document.querySelector(".homepagebar");
-new ResizeObserver(() => document.documentElement.style.setProperty("--homepage-header-height", `${header.getBoundingClientRect().height}px`)).observe(header);
+const indexToolbar = document.querySelector('.index-toolbar');
+const clippedResults = [grid, document.querySelector('.grid-footer')];
+function clipResultsAtToolbar() {
+  // Hide cards at the start of the lower corner curves rather than below the panel.
+  const toolbarBounds = indexToolbar.getBoundingClientRect();
+  const toolbarStyle = getComputedStyle(indexToolbar);
+  const cornerRadius = Math.min(toolbarBounds.height / 2, toolbarBounds.width / 2,
+    Math.max(parseFloat(toolbarStyle.borderBottomLeftRadius) || 0, parseFloat(toolbarStyle.borderBottomRightRadius) || 0));
+  const boundary = toolbarBounds.bottom - cornerRadius;
+  // Read all geometry before writing styles to avoid repeated layout work on scroll.
+  const hiddenHeights = clippedResults.map(element => Math.max(0, boundary - element.getBoundingClientRect().top));
+  clippedResults.forEach((element, index) => {
+    const hiddenHeight = hiddenHeights[index];
+    const clip = hiddenHeight > 0 ? `inset(${hiddenHeight}px -100px -100px -100px)` : '';
+    if (element.style.clipPath !== clip) element.style.clipPath = clip;
+  });
+}
+let clipFrame;
+function scheduleResultsClip() {
+  if (clipFrame) return;
+  clipFrame = requestAnimationFrame(() => {
+    clipFrame = null;
+    clipResultsAtToolbar();
+  });
+}
+window.addEventListener('scroll', scheduleResultsClip, { passive: true });
+window.addEventListener('resize', scheduleResultsClip);
+new ResizeObserver(() => {
+  document.documentElement.style.setProperty("--homepage-header-height", `${header.getBoundingClientRect().height}px`);
+  scheduleResultsClip();
+}).observe(header);
+const resultsClipObserver = new ResizeObserver(scheduleResultsClip);
+[indexToolbar, ...clippedResults].forEach(element => resultsClipObserver.observe(element));
+scheduleResultsClip();
 let competitiveData;
 function loadCompetitiveData() {
   if (!competitiveData) competitiveData = fetch("data/competitive.json").then(response => {
@@ -253,7 +301,13 @@ for (let generation = 1; generation <= 9; generation++) {
 }
 
 const filterDropdowns = [];
+const multiFilterSelections = new Map([
+  [categoryFilter, new Set()],
+  [generationFilter, new Set()],
+  [gameFilter, new Set()],
+]);
 function createFilterDropdown(select, isType = false) {
+  const selections = multiFilterSelections.get(select);
   const wrapper = document.createElement("div");
   wrapper.className = "filter-dropdown";
   const trigger = document.createElement("button");
@@ -276,11 +330,26 @@ function createFilterDropdown(select, isType = false) {
   const label = document.querySelector(`label[for="${select.id}"]`);
   if (label) label.htmlFor = trigger.id;
   const options = [...select.options];
+  if (select.id === 'index-artwork') {
+    const sizeArtworkTrigger = () => {
+      const style = getComputedStyle(trigger);
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      context.font = style.font;
+      const labelWidth = Math.max(...options.map(option => context.measureText(option.textContent).width));
+      const chrome = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+        + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+      trigger.style.width = `${Math.ceil(labelWidth + chrome + 2 + 12)}px`;
+    };
+    sizeArtworkTrigger();
+    document.fonts?.ready.then(sizeArtworkTrigger);
+    window.addEventListener('resize', sizeArtworkTrigger);
+  }
   const buttons = options.map(option => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "filter-option";
-    button.setAttribute("role", "menuitemradio");
+    button.setAttribute("role", selections ? "menuitemcheckbox" : "menuitemradio");
     button.tabIndex = -1;
     if (isType && option.value) {
       const badge = document.createElement("span");
@@ -289,6 +358,15 @@ function createFilterDropdown(select, isType = false) {
       button.append(badge);
     } else button.textContent = option.textContent;
     button.addEventListener("click", () => {
+      if (selections) {
+        if (!option.value) selections.clear();
+        else if (selections.has(option.value)) selections.delete(option.value);
+        else selections.add(option.value);
+        sync();
+        button.focus();
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
       select.value = option.value;
       sync();
       close();
@@ -301,15 +379,26 @@ function createFilterDropdown(select, isType = false) {
   function sync() {
     const option = options.find(option => option.value === select.value) || options[0];
     trigger.replaceChildren();
-    if (isType && option.value) {
+    if (selections) {
+      const selected = options.filter(option => selections.has(option.value));
+      const label = select.getAttribute('aria-label') || options[0].textContent;
+      const pluralLabel = select === categoryFilter ? 'Categories' : select === generationFilter ? 'Generations' : 'Games';
+      trigger.textContent = selected.length > 1 ? `${pluralLabel} (${selected.length})`
+        : selected.length === 1 ? select === generationFilter ? `Generation ${selected[0].textContent}` : selected[0].textContent
+        : options[0].textContent;
+      trigger.setAttribute('aria-label', `${label}: ${selected.length ? selected.map(option => option.textContent).join(', ') : 'All'}`);
+      buttons.forEach((button, index) => button.setAttribute('aria-checked', String(options[index].value ? selections.has(options[index].value) : !selections.size)));
+    } else if (isType && option.value) {
       const badge = document.createElement("span");
       badge.className = `type-badge type-${option.value}`;
       badge.textContent = option.textContent;
       trigger.append(badge);
     } else trigger.textContent = select === generationFilter && option.value
       ? `Generation ${option.textContent}` : [sortFilter, minimumStat].includes(select) ? statLabels[option.value] || option.textContent : option.textContent;
-    trigger.setAttribute("aria-label", `${select.getAttribute("aria-label") || "Sort by"}: ${option.textContent}`);
-    buttons.forEach((button, index) => button.setAttribute("aria-checked", String(options[index].value === select.value)));
+    if (!selections) {
+      trigger.setAttribute("aria-label", `${select.getAttribute("aria-label") || "Sort by"}: ${option.textContent}`);
+      buttons.forEach((button, index) => button.setAttribute("aria-checked", String(options[index].value === select.value)));
+    }
   }
   function close() {
     wrapper.classList.remove("open");
@@ -318,16 +407,16 @@ function createFilterDropdown(select, isType = false) {
   }
   function open() {
     filterDropdowns.forEach(dropdown => dropdown.close());
+    wrapper.classList.add("open");
     const bounds = trigger.getBoundingClientRect();
     const above = bounds.top - header.getBoundingClientRect().height - 12;
     const below = window.innerHeight - bounds.bottom - 12;
     const opensUp = below < menu.scrollHeight && above > below;
     wrapper.classList.toggle("opens-up", opensUp);
     menu.style.maxHeight = `${Math.max(100, opensUp ? above : below)}px`;
-    wrapper.classList.add("open");
     trigger.setAttribute("aria-expanded", "true");
     menu.inert = false;
-    buttons[Math.max(0, options.findIndex(option => option.value === select.value))].focus();
+    buttons[Math.max(0, options.findIndex(option => selections ? selections.has(option.value) : option.value === select.value))].focus();
   }
   trigger.addEventListener("click", () => wrapper.classList.contains("open") ? close() : open());
   trigger.addEventListener("keydown", event => {
@@ -358,6 +447,73 @@ createFilterDropdown(regulationFilter);
 createFilterDropdown(battleFormat);
 createFilterDropdown(categoryFilter);
 createFilterDropdown(gameFilter);
+createFilterDropdown(document.getElementById('index-artwork'));
+document.addEventListener('DOMContentLoaded', () => {
+  filterDropdowns.forEach(dropdown => dropdown.sync());
+});
+window.addEventListener('compdex:settings-changed', () => {
+  filterDropdowns.forEach(dropdown => dropdown.sync());
+});
+const filterUrlKeys = ['q','type','type2','sort','order','reg','format','minSpeed','minStat','minValue','category','gen','game','favorites','related','page'];
+function restoreFiltersFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const selectValue = (key, select) => {
+    const value = params.get(key);
+    if (value !== null && [...select.options].some(option => option.value === value)) select.value = value;
+  };
+  selectValue('type', typeFilter);
+  selectValue('type2', secondTypeFilter);
+  selectValue('sort', sortFilter);
+  selectValue('reg', regulationFilter);
+  selectValue('format', battleFormat);
+  selectValue('minStat', minimumStat);
+  for (const [key, select] of [['category', categoryFilter], ['gen', generationFilter], ['game', gameFilter]]) {
+    const valid = new Set([...select.options].map(option => option.value).filter(Boolean));
+    const selections = multiFilterSelections.get(select);
+    params.getAll(key).flatMap(value => value.split(',')).forEach(value => {
+      if (valid.has(value)) selections.add(value);
+    });
+  }
+  sortDirection = params.get('order') === 'desc' ? 'desc' : sortDirection;
+  nameFilter.value = params.get('q') || '';
+  for (const [key, input] of [['minSpeed', minimumSpeed], ['minValue', minimumValue]]) {
+    const value = params.get(key);
+    if (value !== null && Number.isFinite(Number(value)) && Number(value) >= 0) input.value = value;
+  }
+  favoritesOnly = params.get('favorites') === '1' && favoriteIds.size > 0;
+  updateFavoritesNotice();
+  syncSortDirection();
+  filterDropdowns.forEach(dropdown => dropdown.sync());
+  gridQuery = nameFilter.value.toLowerCase().trim();
+  const page = Number(params.get('page'));
+  return Number.isInteger(page) && page > 0 ? page : 1;
+}
+function syncFilterUrl(page = currentPage) {
+  const url = new URL(location.href);
+  filterUrlKeys.forEach(key => url.searchParams.delete(key));
+  const add = (key, value, fallback = '') => { if (value !== fallback && value !== '') url.searchParams.set(key, String(value)); };
+  add('q', nameFilter.value.trim());
+  add('type', typeFilter.value);
+  add('type2', secondTypeFilter.value);
+  add('sort', sortFilter.value, window.CompDexSettings.get().defaultSort);
+  add('order', sortDirection, window.CompDexSettings.get().sortDirection);
+  add('reg', regulationFilter.value);
+  add('format', battleFormat.value, 'doubles');
+  add('minSpeed', minimumSpeed.value.trim());
+  add('minStat', minimumStat.value, 'total');
+  add('minValue', minimumValue.value.trim());
+  for (const [key, select] of [['category', categoryFilter], ['gen', generationFilter], ['game', gameFilter]]) {
+    const selected = multiFilterSelections.get(select);
+    [...select.options].forEach(option => {
+      if (selected.has(option.value)) url.searchParams.append(key, option.value);
+    });
+  }
+  if (favoritesOnly) url.searchParams.set('favorites', '1');
+  if (!window.CompDexSettings.get().includeEvolutions) url.searchParams.set('related', '0');
+  if (page > 1) url.searchParams.set('page', String(page));
+  if (url.href !== location.href) history.replaceState(history.state, '', url);
+}
+const initialFilterPage = restoreFiltersFromUrl();
 
 function updatePageControls() {
   previousButton.disabled = loadingPage || currentPage <= 1;
@@ -394,10 +550,15 @@ async function fetchPokemon(url) {
       if (/\/pokemon\/[^/]+\/?$/.test(url)) return {
         id: data.id, name: data.name, species: data.species, types: data.types,
         stats: data.stats.map(entry => ({ name: entry.stat.name, value: entry.base_stat })),
-        sprites: { front_default: data.sprites.front_default, front_shiny: data.sprites.front_shiny,
-          other: { "official-artwork": { front_default: data.sprites.other["official-artwork"].front_default, front_shiny: data.sprites.other["official-artwork"].front_shiny } } },
+        sprites: compactPokemonSprites(data.sprites),
       };
       if (/\/pokemon-species\/[^/]+\/?$/.test(url)) return { varieties: data.varieties, evolution_chain: data.evolution_chain };
+      if (/\/type\/[^/]+\/?$/.test(url)) return { pokemon: data.pokemon };
+      if (/\/generation\/[^/]+\/?$/.test(url)) return { pokemon_species: data.pokemon_species };
+      if (/\/evolution-chain\/[^/]+\/?$/.test(url)) {
+        const compactChain = node => ({ species: node.species, evolves_to: node.evolves_to.map(compactChain) });
+        return { chain: compactChain(data.chain) };
+      }
       return data;
     }).catch(error => {
       if (homepageDataCache.get(url) === request) homepageDataCache.delete(url);
@@ -412,10 +573,31 @@ async function fetchPokemon(url) {
 async function getGenerationPokemon(generation) {
   if (!generationPokemonCache.has(generation)) {
     const request = (async () => {
-      const data = await fetchPokemon(`https://pokeapi.co/api/v2/generation/${generation}`);
+      const [data, games] = await Promise.all([
+        fetchPokemon(`https://pokeapi.co/api/v2/generation/${generation}`),
+        loadGameData().catch(() => null),
+        pokemonNamesReady,
+      ]);
       const names = new Set();
+      if (games && allPokemonNames.length) {
+        // Reuse the official species mapping already shipped for the Game filter.
+        const speciesIds = new Set(data.pokemon_species.map(species => Number(species.url.split('/').filter(Boolean).pop())));
+        const unknown = [];
+        allPokemonNames.forEach(pokemon => {
+          const speciesId = games.pokemonSpecies[pokemon.id];
+          if (speciesId === undefined) unknown.push(pokemon);
+          else if (speciesIds.has(speciesId)) names.add(pokemon.api);
+        });
+        // New API records absent from the bundled mapping still work immediately.
+        await forEachLimited(unknown, async pokemon => {
+          const details = await fetchPokemon(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+          const speciesId = Number(details.species.url.split('/').filter(Boolean).pop());
+          if (speciesIds.has(speciesId)) names.add(pokemon.api);
+        });
+        return names;
+      }
       let index = 0;
-      // Species varieties include alternate forms; use API relationships rather than guessed name prefixes.
+      // Preserve live API lookup if the bundled mapping is unavailable.
       await Promise.all(Array.from({ length: Math.min(8, data.pokemon_species.length) }, async () => {
         while (index < data.pokemon_species.length) {
           const species = data.pokemon_species[index++];
@@ -433,10 +615,10 @@ async function getGenerationPokemon(generation) {
   return generationPokemonCache.get(generation);
 }
 
-async function forEachLimited(items, visit) {
+async function forEachLimited(items, visit, isCurrent = () => true) {
   let index = 0;
   await Promise.all(Array.from({ length: Math.min(6, items.length) }, async () => {
-    while (index < items.length) {
+    while (index < items.length && isCurrent()) {
       const position = index++;
       await visit(items[position], position);
     }
@@ -444,6 +626,12 @@ async function forEachLimited(items, visit) {
 }
 
 async function getEvolutionFamily(chainUrl) {
+  if (evolutionFamilyCache.has(chainUrl)) {
+    const cached = evolutionFamilyCache.get(chainUrl);
+    evolutionFamilyCache.delete(chainUrl);
+    evolutionFamilyCache.set(chainUrl, cached);
+    return cached;
+  }
   if (!evolutionFamilyCache.has(chainUrl)) {
     const request = (async () => {
       const data = await fetchPokemon(chainUrl);
@@ -459,13 +647,17 @@ async function getEvolutionFamily(chainUrl) {
         details.varieties.forEach(variety => names.add(variety.pokemon.name));
       });
       return names;
-    })().catch(error => { evolutionFamilyCache.delete(chainUrl); throw error; });
+    })().catch(error => {
+      if (evolutionFamilyCache.get(chainUrl) === request) evolutionFamilyCache.delete(chainUrl);
+      throw error;
+    });
     evolutionFamilyCache.set(chainUrl, request);
+    while (evolutionFamilyCache.size > 100) evolutionFamilyCache.delete(evolutionFamilyCache.keys().next().value);
   }
   return evolutionFamilyCache.get(chainUrl);
 }
 
-async function getSearchEvolutionNames(query, number, includeEvolutions) {
+async function getSearchEvolutionNames(query, number, includeEvolutions, isCurrent = () => true) {
   // Numeric family expansion starts from the exact ID, retaining prefix matching separately.
   if (!includeEvolutions || (number === null && query.length < 3)) return { names: null, failed: false };
   const matches = allPokemonNames.filter(pokemon => number !== null
@@ -475,19 +667,22 @@ async function getSearchEvolutionNames(query, number, includeEvolutions) {
   await forEachLimited(matches, async pokemon => {
     try {
       const details = await fetchPokemon(`https://pokeapi.co/api/v2/pokemon/${pokemon.id}`);
+      if (!isCurrent()) return;
       const species = await fetchPokemon(details.species.url);
+      if (!isCurrent()) return;
       if (species.evolution_chain) {
         const family = await getEvolutionFamily(species.evolution_chain.url);
         family.forEach(name => names.add(name));
       }
     } catch { failed = true; }
-  });
+  }, isCurrent);
   return { names, failed };
 }
 
 async function loadPage(page, replaceSearch = false) {
   if ((loadingPage && !replaceSearch) || !Number.isFinite(page)) return;
   const request = ++pageRequest;
+  const isCurrent = () => request === pageRequest;
   const query = gridQuery;
   const selectedType = typeFilter.value;
   const selectedSecondType = secondTypeFilter.value;
@@ -495,9 +690,9 @@ async function loadPage(page, replaceSearch = false) {
   const selectedDirection = sortDirection === "asc" ? 1 : -1;
   const selectedFavoritesOnly = favoritesOnly && favoriteIds.size > 0;
   const selectedFavoriteIds = new Set(favoriteIds);
-  const selectedGeneration = generationFilter.value;
-  const selectedCategory = categoryFilter.value;
-  const selectedGame = gameFilter.value;
+  const selectedGenerations = new Set(multiFilterSelections.get(generationFilter));
+  const selectedCategories = new Set(multiFilterSelections.get(categoryFilter));
+  const selectedGames = new Set(multiFilterSelections.get(gameFilter));
   const speedMinimum = minimum(minimumSpeed);
   const statMinimum = minimum(minimumValue);
   const minimumStatName = minimumStat.value;
@@ -506,12 +701,12 @@ async function loadPage(page, replaceSearch = false) {
   const preferences = window.CompDexSettings.get();
   const pageSize = preferences.pageSize;
   if (totalResults !== null) totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
-  page = Math.max(1, Math.min(totalPages, Math.trunc(page)));
+  page = Math.max(1, Math.min(totalResults === null ? Infinity : totalPages, Math.trunc(page)));
   loadingPage = true;
   updatePageControls();
   status.textContent = `Loading page ${page}…`;
   try {
-    const offset = (page - 1) * pageSize;
+    let offset = (page - 1) * pageSize;
     let data;
     let evolutionSearchFailed = false;
     if (!filteredResults) {
@@ -522,15 +717,16 @@ async function loadPage(page, replaceSearch = false) {
       const [typeData, secondTypeData, generationNames, evolutionSearch, statData, competitive, categories, games] = await Promise.all([
         selectedType ? fetchPokemon(`https://pokeapi.co/api/v2/type/${selectedType}`) : null,
         selectedSecondType ? fetchPokemon(`https://pokeapi.co/api/v2/type/${selectedSecondType}`) : null,
-        selectedGeneration ? getGenerationPokemon(selectedGeneration) : null,
-        getSearchEvolutionNames(query, number, preferences.includeEvolutions),
+        selectedGenerations.size ? Promise.all([...selectedGenerations].map(getGenerationPokemon)) : null,
+        getSearchEvolutionNames(query, number, preferences.includeEvolutions, isCurrent),
         (statLabels[selectedSort] || speedMinimum !== null || statMinimum !== null) ? loadStatSortData() : null,
         selectedRegulation ? loadCompetitiveData() : null,
-        selectedCategory ? loadCategoryData() : null,
-        selectedGame ? loadGameData() : null,
+        selectedCategories.size ? loadCategoryData() : null,
+        selectedGames.size ? loadGameData() : null,
       ]);
       if (request !== pageRequest) return;
-      const gameSpecies = games ? new Set(games.games.find(game => game.id === selectedGame)?.species || []) : null;
+      const gameSpecies = games ? new Set(games.games.filter(game => selectedGames.has(String(game.id))).flatMap(game => game.species || [])) : null;
+      const generationPokemon = generationNames ? new Set(generationNames.flatMap(names => [...names])) : null;
       const regulation = competitive?.regulations[selectedRegulation];
       const legal = regulation ? new Set(regulation.legal) : null;
       const usage = regulation?.formats[selectedFormat];
@@ -540,6 +736,7 @@ async function loadPage(page, replaceSearch = false) {
         : "";
       const typeNames = typeData ? new Set(typeData.pokemon.map(entry => entry.pokemon.name)) : null;
       const secondTypeNames = secondTypeData ? new Set(secondTypeData.pokemon.map(entry => entry.pokemon.name)) : null;
+      const categoryChoices = [...selectedCategories];
       evolutionSearchFailed = evolutionSearch.failed;
       const matches = allPokemonNames.filter(pokemon => {
         const searchMatches = number !== null
@@ -550,12 +747,12 @@ async function loadPage(page, replaceSearch = false) {
           && (preferences.includeAltForms || pokemon.id < 10000)
           && (!selectedFavoritesOnly || selectedFavoriteIds.has(pokemon.id))
           && (!secondTypeNames || secondTypeNames.has(pokemon.api))
-          && (!generationNames || generationNames.has(pokemon.api))
+          && (!generationPokemon || generationPokemon.has(pokemon.api))
           && (!gameSpecies || gameSpecies.has(games.pokemonSpecies[pokemon.id]))
           && (!legal || legal.has(competitiveName(pokemon.api)))
-          && (!selectedCategory || (selectedCategory === "ordinary"
+          && (!selectedCategories.size || categoryChoices.some(category => category === "ordinary"
             ? categories[pokemon.id] === 0
-            : Boolean(categories[pokemon.id] & categoryBits[selectedCategory])))
+            : Boolean(categories[pokemon.id] & categoryBits[category])))
           && (speedMinimum === null || (statData.get(pokemon.id)?.speed ?? -1) >= speedMinimum)
           && (statMinimum === null || (statData.get(pokemon.id)?.[minimumStatName] ?? -1) >= statMinimum);
       });
@@ -572,6 +769,9 @@ async function loadPage(page, replaceSearch = false) {
       filteredResults = { matches, evolutionSearchFailed, usage };
     }
     evolutionSearchFailed = filteredResults.evolutionSearchFailed;
+    const pageUsage = filteredResults.usage;
+    page = Math.min(page, Math.max(1, Math.ceil(filteredResults.matches.length / pageSize)));
+    offset = (page - 1) * pageSize;
     data = {
         count: filteredResults.matches.length,
         results: filteredResults.matches.slice(offset, offset + pageSize).map(pokemon => ({
@@ -596,6 +796,7 @@ async function loadPage(page, replaceSearch = false) {
       link.href = `pokemoninfo.html?pokemon=${encodeURIComponent(pokemon.name)}`;
       try {
         const details = await fetchPokemon(pokemon.url);
+        if (!isCurrent()) return;
         const baseStatTotal = details.stats.reduce((sum, entry) => sum + entry.value, 0);
         // Add minimum stats after the sort stat, showing each stat only once.
         const displayedStats = ["total"];
@@ -604,7 +805,7 @@ async function loadPage(page, replaceSearch = false) {
         if (statMinimum !== null) displayedStats.push(minimumStatName);
         const statLines = [...new Set(displayedStats)].map(stat => {
           if (stat === "total") {
-            const value = filteredResults.usage?.usage[competitiveName(pokemon.name)];
+            const value = pageUsage?.usage[competitiveName(pokemon.name)];
             const usage = selectedSort === "usage" ? `<span class="card-usage">Usage: ${value === undefined ? "\u2014" : value.toFixed(2) + "%"}</span>` : "";
             return `<span class="card-stat-first-line">BST: ${baseStatTotal}${usage}</span>`;
           }
@@ -612,17 +813,24 @@ async function loadPage(page, replaceSearch = false) {
           return `<span>${statLabels[stat]}: ${value ?? "\u2014"}</span>`;
         });
         card.style.setProperty("--extra-stat-lines", statLines.length - 1);
-        const { source: artwork, pixel: pixelArtwork } = getPokemonArtwork(details.sprites, preferences);
-        link.innerHTML = `<span class="card-stat">${statLines.join("")}</span>${artwork ? `<img class="${pixelArtwork ? 'pixel-artwork' : 'official-artwork'}" data-artwork-source="${artwork}" alt="${pokemon.name}" decoding="async" />` : '<div class="artwork-placeholder">No artwork</div>'}
+        const { source: artwork, pixel: pixelArtwork, animated, fallback } = getPokemonArtwork(details.sprites, preferences);
+        link.innerHTML = `<span class="card-stat">${statLines.join("")}</span>${artwork ? `<img class="${pixelArtwork ? 'pixel-artwork' : 'official-artwork'}" data-artwork-source="${artwork}" data-animated="${animated}" alt="${pokemon.name}" decoding="async" />` : '<div class="artwork-placeholder">No artwork</div>'}
           <p><span class="pokemon-name">${reverseTransformName(details.name)}</span><span class="pokemon-id">#${details.id}</span></p>
           <div class="card-types">${details.types.map(({type}) => `<span class="type-badge type-${type.name}">${type.name}</span>`).join("")}</div>`;
+        const artworkImage = link.querySelector('img');
+        if (artworkImage && fallback && fallback !== artwork) {
+          artworkImage.addEventListener('error', () => {
+            artworkImage.className = 'official-artwork';
+            artworkImage.src = fallback;
+          }, { once: true });
+        }
       } catch {
         link.textContent = `${reverseTransformName(pokemon.name)} — details unavailable`;
       }
       card.append(link);
       addFavoriteButton(card, Number(pokemon.url.split("/").filter(Boolean).pop()), pokemon.name);
       cards[index] = card;
-    });
+    }, isCurrent);
     if (request !== pageRequest) return;
     releaseCardArtwork();
     grid.replaceChildren(...cards);
@@ -631,6 +839,7 @@ async function loadPage(page, replaceSearch = false) {
     currentPage = page;
     totalPages = Math.max(1, Math.ceil(data.count / pageSize));
     totalResults = data.count;
+    syncFilterUrl(currentPage);
     resultsPending = false;
     updateFavoritesNotice();
     status.textContent = data.count
@@ -668,6 +877,7 @@ pageInput.addEventListener("change", () => {
   else pageInput.value = currentPage;
 });
 function filterHomepage() {
+  syncFilterUrl(1);
   clearTimeout(filterTimer);
   filteredResults = null;
   resultsPending = true;
@@ -698,7 +908,10 @@ sortDirectionButton.addEventListener("click", () => {
 generationFilter.addEventListener("change", filterHomepage);
 minimumSpeed.addEventListener("input", filterHomepage);
 minimumValue.addEventListener("input", filterHomepage);
-minimumStat.addEventListener("change", filterHomepage);
+minimumStat.addEventListener("change", () => {
+  if (minimumValue.value.trim()) filterHomepage();
+  else syncFilterUrl(currentPage);
+});
 categoryFilter.addEventListener("change", filterHomepage);
 gameFilter.addEventListener("change", filterHomepage);
 regulationFilter.addEventListener("change", () => {
@@ -711,7 +924,10 @@ regulationFilter.addEventListener("change", () => {
   }
   filterHomepage();
 });
-battleFormat.addEventListener("change", filterHomepage);
+battleFormat.addEventListener("change", () => {
+  if (regulationFilter.value || sortFilter.value === "usage") filterHomepage();
+  else syncFilterUrl(currentPage);
+});
 favoritesFilter.addEventListener("click", () => {
   if (favoriteIds.size === 0) {
     favoritesOnly = false;
@@ -727,7 +943,16 @@ favoritesFilter.addEventListener("click", () => {
   if (favoriteIds.size === 0) return;
   filterHomepage();
 });
-document.getElementById("reset-filters").addEventListener("click", () => {
+function resetHomepageFilters() {
+  const settings = window.CompDexSettings.get();
+  const selectedGroups = [...multiFilterSelections.values()].some(selected => selected.size);
+  const resultsAffected = nameFilter.value.trim() || typeFilter.value || secondTypeFilter.value
+    || sortFilter.value !== settings.defaultSort || sortDirection !== settings.sortDirection
+    || regulationFilter.value || minimumSpeed.value.trim() || minimumValue.value.trim()
+    || favoritesOnly || selectedGroups;
+  const hasFilters = resultsAffected || battleFormat.value !== "doubles" || minimumStat.value !== "total";
+  if (!hasFilters) return;
+  multiFilterSelections.forEach(selected => selected.clear());
   categoryFilter.value = "";
   gameFilter.value = "";
   minimumSpeed.value = "";
@@ -746,8 +971,11 @@ document.getElementById("reset-filters").addEventListener("click", () => {
   showEmptyFavoritesNotice = false;
   updateFavoritesNotice();
   filterDropdowns.forEach(dropdown => { dropdown.sync(); dropdown.close(); });
-  filterHomepage();
-});
+  if (resultsAffected) filterHomepage();
+  else syncFilterUrl(currentPage);
+}
+document.getElementById("reset-filters").addEventListener("click", resetHomepageFilters);
+window.addEventListener("compdex:reset-filters", resetHomepageFilters);
 window.addEventListener("compdex:settings-changed", event => {
   const { previous, settings } = event.detail;
   if (previous.defaultSort !== settings.defaultSort) {
@@ -756,11 +984,22 @@ window.addEventListener("compdex:settings-changed", event => {
     filterDropdowns.forEach(dropdown => dropdown.sync());
   }
   if (previous.sortDirection !== settings.sortDirection) { sortDirection = settings.sortDirection; syncSortDirection(); }
-  if (["defaultSort", "sortDirection", "artwork", "shiny", "includeEvolutions", "includeAltForms"].some(key => previous[key] !== settings[key])) filterHomepage();
-  else if (previous.pageSize !== settings.pageSize) {
+  const relatedChanged = previous.includeEvolutions !== settings.includeEvolutions;
+  const relatedQuery = nameFilter.value.toLowerCase().trim();
+  const relatedCanChangeResults = pokemonNumber(relatedQuery) !== null || relatedQuery.length >= 3;
+  const resultsChanged = ["defaultSort", "sortDirection", "includeAltForms"].some(key => previous[key] !== settings[key])
+    || (relatedChanged && relatedCanChangeResults);
+  if (resultsChanged) filterHomepage();
+  else {
+    if (relatedChanged) syncFilterUrl(currentPage);
+    if (previous.pageSize !== settings.pageSize) {
     // Keep the matched list, but restart pagination with the new count.
-    clearTimeout(filterTimer);
-    loadPage(1, true);
+      clearTimeout(filterTimer);
+      loadPage(1, true);
+    }
+    else if (previous.artwork !== settings.artwork || previous.shiny !== settings.shiny) {
+      loadPage(currentPage);
+    }
   }
 });
-loadPage(1);
+loadPage(initialFilterPage);
