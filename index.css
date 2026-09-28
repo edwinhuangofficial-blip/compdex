@@ -136,6 +136,30 @@ margin: 0 auto;
 /* Change this value to test the roundness of both pinned panels. */
 :root { --pinned-panel-radius: 10px; }
 .index-toolbar, .homepage-layout .homepage-filters { padding: 12px; box-sizing: border-box; border: 1px solid var(--accent); border-radius: var(--pinned-panel-radius); background: color-mix(in srgb, var(--accent) 20%, var(--surface)); color: var(--text); box-shadow: 0 3px 12px rgb(0 0 0 / 12%); }
+/* Move the cover with the sticky toolbar, without waiting for scroll events. */
+.index-toolbar { background: transparent; box-shadow: none; }
+.index-toolbar::before {
+  content: "";
+  position: absolute;
+  top: -100vh;
+  bottom: calc(min(var(--pinned-panel-radius), 50%) - 1px);
+  left: -12px;
+  right: -12px;
+  background: var(--page-bg);
+  pointer-events: auto;
+  z-index: -2;
+}
+.index-toolbar::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: inherit;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  box-shadow: 0 3px 12px rgb(0 0 0 / 12%);
+  pointer-events: none;
+  z-index: -1;
+}
 .homepage-filters input, .homepage-filters button, .homepage-filters select, .homepage-filters .filter-menu, .index-display-controls button, .index-display-controls select, #favorites-notice, #usage-note { color: var(--text); }
 .index-display-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
 .index-display-controls select { font: inherit; color: var(--text); padding: 6px 10px; border: 2px solid var(--accent); border-radius: 6px; background: var(--surface); cursor: pointer; }

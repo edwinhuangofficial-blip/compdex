@@ -147,23 +147,6 @@ function updateUsageNotice(regulation, usage, format, showUsage) {
   usageNoticeTimer = setTimeout(() => { usageNote.hidden = true; }, 4200);
 }
 const header = document.querySelector(".homepagebar");
-const indexToolbar = document.querySelector('.index-toolbar');
-const clippedResults = [grid, document.querySelector('.grid-footer')];
-function clipResultsAtToolbar() {
-  // Hide cards at the start of the lower corner curves rather than below the panel.
-  const toolbarBounds = indexToolbar.getBoundingClientRect();
-  const toolbarStyle = getComputedStyle(indexToolbar);
-  const cornerRadius = Math.min(toolbarBounds.height / 2, toolbarBounds.width / 2,
-    Math.max(parseFloat(toolbarStyle.borderBottomLeftRadius) || 0, parseFloat(toolbarStyle.borderBottomRightRadius) || 0));
-  const boundary = toolbarBounds.bottom - cornerRadius;
-  // Read all geometry before writing styles to avoid repeated layout work on scroll.
-  const hiddenHeights = clippedResults.map(element => Math.max(0, boundary - element.getBoundingClientRect().top));
-  clippedResults.forEach((element, index) => {
-    const hiddenHeight = hiddenHeights[index];
-    const clip = hiddenHeight > 0 ? `inset(${hiddenHeight}px -100px -100px -100px)` : '';
-    if (element.style.clipPath !== clip) element.style.clipPath = clip;
-  });
-}
 function installCardArtworkFallback(image) {
   image.addEventListener("error", () => {
     const fallback = image.dataset.artworkFallback;
@@ -220,23 +203,9 @@ function refreshCardArtwork(preferences, replayAnimation = false) {
     });
   }
 }
-let clipFrame;
-function scheduleResultsClip() {
-  if (clipFrame) return;
-  clipFrame = requestAnimationFrame(() => {
-    clipFrame = null;
-    clipResultsAtToolbar();
-  });
-}
-window.addEventListener('scroll', scheduleResultsClip, { passive: true });
-window.addEventListener('resize', scheduleResultsClip);
 new ResizeObserver(() => {
   document.documentElement.style.setProperty("--homepage-header-height", `${header.getBoundingClientRect().height}px`);
-  scheduleResultsClip();
 }).observe(header);
-const resultsClipObserver = new ResizeObserver(scheduleResultsClip);
-[indexToolbar, ...clippedResults].forEach(element => resultsClipObserver.observe(element));
-scheduleResultsClip();
 let competitiveData;
 function loadCompetitiveData() {
   if (!competitiveData) competitiveData = fetch("data/competitive.json").then(response => {
