@@ -198,6 +198,10 @@ margin: 0 auto;
 .filter-trigger::after { content: "⌄"; color: var(--accent); transition: transform 220ms ease; }
 .filter-dropdown.open .filter-trigger::after { transform: rotate(180deg); }
 .filter-trigger .type-badge { margin: 4px 0; }
+.filter-trigger .type-badge:has(.type-filter-remove) { display: inline-flex; align-items: center; justify-content: center; gap: 3px; cursor: pointer; transition: filter 150ms ease, box-shadow 150ms ease; }
+.filter-trigger .type-badge:has(.type-filter-remove):hover { box-shadow: 0 0 0 2px var(--accent); }
+.filter-trigger .type-badge:has(.type-filter-remove):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.type-filter-remove { flex-shrink: 0; font-size: 13px; line-height: 1; cursor: pointer; }
 .homepage-filters .type-badge { width: 52px; padding: 3px 4px; margin: 0; font-size: 12px; line-height: 1.2; border-radius: 7px; }
 .filter-menu { position: absolute; top: calc(100% + 8px); left: 0; min-width: 100%; width: max-content; max-width: min(290px, 85vw); padding: 8px; box-sizing: border-box; border: 2px solid var(--accent); border-radius: 8px; background: var(--surface); box-shadow: 0 8px 20px rgb(var(--accent-rgb) / 18%); z-index: 80; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 220ms ease, transform 220ms cubic-bezier(.22, 1, .36, 1), visibility 220ms; }
 .filter-dropdown.open .filter-menu { opacity: 1; visibility: visible; transform: translateY(0); }
@@ -213,6 +217,7 @@ margin: 0 auto;
 .homepage-filters .filter-option:disabled { opacity: .5; cursor: default; }
 .homepage-filters .filter-option[role="menuitemcheckbox"]::before { content: "□"; display: inline-block; width: 1.3em; color: var(--accent); font-weight: 700; }
 .homepage-filters .filter-option[role="menuitemcheckbox"][aria-checked="true"]::before { content: "✓"; }
+.homepage-filters .type-filter-menu .filter-option[role="menuitemcheckbox"]::before { content: none; }
 .filter-option .type-badge { margin-right: 0; }
 .homepage-filters .filter-option:hover, .homepage-filters .filter-option:focus-visible, .homepage-filters .filter-option[aria-checked="true"] { background: var(--accent-subtle); outline: none; }
 .homepage-filters select, .homepage-filters button { font: inherit; padding: 6px 10px; border: 2px solid var(--accent); border-radius: 6px; background: var(--surface); cursor: pointer; }
@@ -465,6 +470,7 @@ cursor: pointer;
 .minimum-stat-row .minimum-input { width: 70px; }
 .competitive-note { margin: 0; font-size: .65em; line-height: 1.3; }
 .homepage-filters .filter-menu { max-height: calc(100dvh - var(--homepage-header-height, 100px) - 40px); overflow-y: auto; }
+.homepage-filters .type-filter-menu { max-height: none; overflow: visible; }
 @media (max-width: 760px) { .homepage-layout .homepage-filters { position: static; max-height: none; overflow: visible; } .minimum-input { width: 100px; } }
 #filters-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #filters-toggle span { color: var(--accent); transition: transform 220ms ease; }

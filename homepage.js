@@ -390,6 +390,10 @@ function createFilterDropdown(select, isType = false) {
   menu.id = `${select.id}-menu`;
   menu.setAttribute("role", "menu");
   menu.setAttribute("aria-labelledby", trigger.id);
+  // Keep focus inside the dropdown when its padding or gaps are clicked.
+  menu.addEventListener('pointerdown', event => {
+    if (event.target === menu) event.preventDefault();
+  });
   menu.inert = true;
   trigger.setAttribute("aria-controls", menu.id);
   select.before(wrapper);
@@ -418,7 +422,7 @@ function createFilterDropdown(select, isType = false) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "filter-option";
-    button.setAttribute("role", selections ? "menuitemcheckbox" : "menuitemradio");
+    button.setAttribute("role", selections || isType ? "menuitemcheckbox" : "menuitemradio");
     button.tabIndex = -1;
     if (isType && option.value) {
       const badge = document.createElement("span");
@@ -427,6 +431,19 @@ function createFilterDropdown(select, isType = false) {
       button.append(badge);
     } else button.textContent = option.textContent;
     button.addEventListener("click", () => {
+      if (isType) {
+        const selected = [...new Set([typeFilter.value, secondTypeFilter.value].filter(Boolean))];
+        if (!option.value) selected.length = 0;
+        else if (selected.includes(option.value)) selected.splice(selected.indexOf(option.value), 1);
+        else if (selected.length < 2) selected.push(option.value);
+        else selected[1] = option.value;
+        typeFilter.value = selected[0] || '';
+        secondTypeFilter.value = selected[1] || '';
+        sync();
+        button.focus();
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
       if (selections) {
         if (!option.value) selections.clear();
         else if (selections.has(option.value)) selections.delete(option.value);
@@ -457,14 +474,47 @@ function createFilterDropdown(select, isType = false) {
         : options[0].textContent;
       trigger.setAttribute('aria-label', `${label}: ${selected.length ? selected.map(option => option.textContent).join(', ') : 'All'}`);
       buttons.forEach((button, index) => button.setAttribute('aria-checked', String(options[index].value ? selections.has(options[index].value) : !selections.size)));
-    } else if (isType && option.value) {
-      const badge = document.createElement("span");
-      badge.className = `type-badge type-${option.value}`;
-      badge.textContent = option.textContent;
-      trigger.append(badge);
+    } else if (isType) {
+      const selected = new Set([typeFilter.value, secondTypeFilter.value].filter(Boolean));
+      const selectedOptions = [...selected].map(value => options.find(option => option.value === value)).filter(Boolean);
+      if (!selectedOptions.length) trigger.textContent = options[0].textContent;
+      for (const selectedOption of selectedOptions) {
+        const badge = document.createElement("span");
+        badge.className = `type-badge type-${selectedOption.value}`;
+        badge.textContent = selectedOption.textContent;
+        const remove = document.createElement('span');
+        remove.className = 'type-filter-remove';
+        remove.textContent = '×';
+        remove.setAttribute('aria-hidden', 'true');
+        badge.setAttribute('role', 'button');
+        badge.tabIndex = 0;
+        badge.setAttribute('aria-label', `Remove ${selectedOption.textContent} type`);
+        badge.title = `Remove ${selectedOption.textContent}`;
+        const removeType = event => {
+          event.preventDefault();
+          event.stopPropagation();
+          const remaining = [typeFilter.value, secondTypeFilter.value].filter(value => value && value !== selectedOption.value);
+          typeFilter.value = remaining[0] || '';
+          secondTypeFilter.value = remaining[1] || '';
+          sync();
+          trigger.focus();
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+        badge.addEventListener('click', removeType);
+        badge.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') removeType(event);
+        });
+        badge.append(remove);
+        trigger.append(badge);
+      }
+      trigger.setAttribute('aria-label', `Types: ${selectedOptions.length ? selectedOptions.map(option => option.textContent).join(', ') : 'All'}`);
+      buttons.forEach((button, index) => {
+        const value = options[index].value;
+        button.setAttribute('aria-checked', String(value ? selected.has(value) : !selected.size));
+      });
     } else trigger.textContent = select === generationFilter && option.value
       ? `Generation ${option.textContent}` : [sortFilter, minimumStat].includes(select) ? statLabels[option.value] || option.textContent : option.textContent;
-    if (!selections) {
+    if (!selections && !isType) {
       trigger.setAttribute("aria-label", `${select.getAttribute("aria-label") || "Sort by"}: ${option.textContent}`);
       buttons.forEach((button, index) => button.setAttribute("aria-checked", String(options[index].value === select.value)));
     }
@@ -497,9 +547,9 @@ function createFilterDropdown(select, isType = false) {
       ? filtersPanel.getBoundingClientRect() : null;
     const above = bounds.top - Math.max(header.getBoundingClientRect().height, panelBounds?.top || 0) - 12;
     const below = Math.min(window.innerHeight, panelBounds?.bottom ?? window.innerHeight) - bounds.bottom - 12;
-    const opensUp = below < menu.scrollHeight && above > below;
+    const opensUp = !isType && below < menu.scrollHeight && above > below;
     wrapper.classList.toggle("opens-up", opensUp);
-    menu.style.maxHeight = `${Math.max(100, opensUp ? above : below)}px`;
+    menu.style.maxHeight = isType ? 'none' : `${Math.max(100, opensUp ? above : below)}px`;
     if (panelBounds) {
       menu.style.maxWidth = `${Math.max(100, panelBounds.width - 24)}px`;
       menu.style.left = '0px';
@@ -533,7 +583,6 @@ function createFilterDropdown(select, isType = false) {
   filterDropdowns.push({ sync, close });
 }
 createFilterDropdown(typeFilter, true);
-createFilterDropdown(secondTypeFilter, true);
 createFilterDropdown(generationFilter);
 createFilterDropdown(sortFilter);
 createFilterDropdown(minimumStat);
