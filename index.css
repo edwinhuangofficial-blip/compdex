@@ -30,6 +30,17 @@ display: flex;
 justify-content: center;
 align-items: baseline;
 }
+.shuffle-button { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 6px; box-sizing: border-box; border: 1px solid var(--accent); border-radius: 6px; background: var(--surface); color: var(--text); cursor: pointer; }
+.shuffle-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.shuffle-button:hover { color: var(--accent); background: var(--accent-subtle); }
+.shuffle-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.shuffle-button:disabled { opacity: .5; cursor: wait; }
+#random-pokemon { margin-left: 50px; flex-shrink: 0; align-self: center; }
+@media (max-width: 760px) { #random-pokemon { margin-left: 12px; } }
+@media (max-width: 760px) {
+  .bar-mid .searchbarbut, .bar-mid .search-input-wrap { flex: 1; min-width: 0; }
+  .homepagebar #searchbarid { width: 100%; box-sizing: border-box; }
+}
 
 .bar-right {
 flex: 1;
@@ -125,6 +136,7 @@ margin: 0 auto;
 .card-stat-first-line { white-space: nowrap; }
 .card-usage { margin-left: 8px; }
 .homepage-layout { display: grid; grid-template-columns: 214px minmax(0, 1fr); gap: 20px; width: 100%; max-width: 1320px; margin: 0 auto; padding: 12px 16px 0; box-sizing: border-box; align-items: start; }
+#filters-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 0; border: 0; font: inherit; font-size: 18px; font-weight: bold; color: var(--text); background: transparent; cursor: pointer; text-align: left; }
 .homepage-layout .homepage-filters { display: flex; flex-direction: column; align-items: stretch; gap: 12px; max-width: none; margin: 0; padding: 0; }
 .homepage-filters .mini-search-wrap, .homepage-filters #name-filter { width: 100%; }
 .homepage-filters .filter-dropdown { min-width: 0; }
@@ -191,6 +203,14 @@ margin: 0 auto;
 .filter-dropdown.open .filter-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .type-filter-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .homepage-filters .filter-option { display: block; width: 100%; border: none; border-radius: 5px; padding: 10px; text-align: left; white-space: nowrap; transition: background-color 180ms ease; }
+.homepage-filters .filter-option[hidden], .filter-dropdown[hidden] { display: none; }
+.homepage-filters .game-filter-dropdown { min-width: 0; max-width: 100%; }
+.homepage-filters .game-filter-dropdown .filter-trigger { width: 100%; box-sizing: border-box; }
+.game-selected-name { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.game-filter-dropdown .filter-trigger::after { flex-shrink: 0; }
+.homepage-filters .game-filter-dropdown .filter-option { white-space: normal; }
+@media (max-width: 760px) { .homepage-filters .game-filter-dropdown { width: 218px; } }
+.homepage-filters .filter-option:disabled { opacity: .5; cursor: default; }
 .homepage-filters .filter-option[role="menuitemcheckbox"]::before { content: "□"; display: inline-block; width: 1.3em; color: var(--accent); font-weight: 700; }
 .homepage-filters .filter-option[role="menuitemcheckbox"][aria-checked="true"]::before { content: "✓"; }
 .filter-option .type-badge { margin-right: 0; }
@@ -245,6 +265,7 @@ object-fit: contain;
 }
 .pokecard img.pixel-artwork, .dropdown-item img { image-rendering: pixelated; }
 .pokecard img:not([src]) { visibility: hidden; }
+.pokecard .pokemon-name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .card-types { display: flex; gap: 13px; justify-content: center; padding: 0 6px; }
 .pokecard .type-badge { width: 62px; padding: 4px 5px; font-size: 14px; transform: scale(1.2); }
@@ -445,6 +466,14 @@ cursor: pointer;
 .competitive-note { margin: 0; font-size: .65em; line-height: 1.3; }
 .homepage-filters .filter-menu { max-height: calc(100dvh - var(--homepage-header-height, 100px) - 40px); overflow-y: auto; }
 @media (max-width: 760px) { .homepage-layout .homepage-filters { position: static; max-height: none; overflow: visible; } .minimum-input { width: 100px; } }
+#filters-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#filters-toggle span { color: var(--accent); transition: transform 220ms ease; }
+.filters-open #filters-toggle span { transform: rotate(180deg); }
+
+.filters-content { display: flex; flex-direction: column; gap: inherit; width: 100%; min-width: 0; height: auto; opacity: 1; transform: translateY(0); transition: opacity 220ms ease, transform 220ms cubic-bezier(.22, 1, .36, 1); }
+.homepage-layout:not(.filters-open) .filters-content { height: 0; opacity: 0; transform: translateY(-6px); overflow: hidden; pointer-events: none; }
+.homepage-layout .homepage-filters { z-index: 35; max-height: none; overflow: visible; }
+.homepage-filters #name-filter { box-sizing: border-box; }
 
 @media (min-width: 761px) { .homepage-layout .homepage-filters { gap: 6px; font-size: 18px; } .sidebar-filter-actions { margin-bottom: 5px; } .homepage-filters label { font-size: 16px; } .homepage-filters #name-filter { font-size: 22px; } }
 
@@ -470,3 +499,25 @@ cursor: pointer;
 .homepage-filters .sidebar-sort-controls .filter-trigger,
 .homepage-filters .sidebar-sort-controls #sort-direction { box-sizing: border-box; height: 34px; min-height: 34px; padding-top: 4px; padding-bottom: 4px; }
 .homepage-filters .sidebar-sort-controls #sort-direction { display: grid; place-items: center; flex: 0 0 28px; line-height: 1; }
+
+/* Compact mobile controls while preserving the existing toolbar flow. */
+@media (max-width: 760px) {
+  .homepagebar .bar-left { flex: 1 1 auto; min-width: 0; }
+  .homepagebar .bar-right { flex: 0 0 auto; }
+  .homepagebar #homebutton { white-space: nowrap; margin: 14px 0; }
+  .homepagebar #share-button span { display: none; }
+  .homepagebar #share-button { padding: 7px; }
+  .filters-content { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+  .index-toolbar { padding: 8px; gap: 5px; }
+  .index-display-controls { gap: 5px; font-size: 14px; min-width: 0; }
+  .index-display-controls .filter-trigger,
+  .index-display-controls label[for="index-shiny"],
+  .index-display-controls label[for="index-related"] { padding: 4px 5px; min-height: 30px; gap: 3px; }
+  .index-display-controls .filter-dropdown { min-width: 0; }
+  .index-display-controls #favorites-filter { padding: 4px; }
+  .index-display-controls .shuffle-button { width: 30px; height: 30px; padding: 4px; }
+  .homepage-results .filter-summary { gap: 5px; min-height: 28px; font-size: 13px; margin-left: auto; }
+}
+
+.homepage-layout:not(.filters-open) .homepage-filters { padding-top: 6px; padding-bottom: 6px; gap: 0; }
+.homepage-layout:not(.filters-open) #filters-toggle { min-height: 24px; line-height: 24px; }

@@ -51,17 +51,21 @@ function getPokemonArtwork(sprites, preferences) {
     animated: sprites.other?.showdown?.[field],
   };
   const selected = choices[preferences.artwork];
+  const modernSources = [sprites.other?.scarletViolet?.[field], sprites.other?.champions?.[field], sprites.other?.home?.[field]].filter(Boolean);
   const fallback = hd || official?.front_default || pixel || sprites.front_default;
   // API sprite objects can exist with null URLs; choose still pixels before HD
   // both when animation is absent and when its URL fails to load.
-  const source = selected || (preferences.artwork === 'animatedPixel' ? pixel || sprites.front_default || fallback : fallback);
+  const source = selected || (preferences.artwork === 'animatedPixel' ? pixel || sprites.front_default || fallback
+    : preferences.artwork === 'animated' ? modernSources[0] || fallback : fallback);
   const fallbackSources = preferences.artwork === 'champions'
     ? [sprites.other?.scarletViolet?.[field], sprites.other?.champions?.[field], sprites.other?.home?.[field], hd, official?.front_default]
+    : preferences.artwork === 'animated' ? [...modernSources, hd, official?.front_default, pixel, sprites.front_default]
     : preferences.artwork === 'animatedPixel' ? [pixel, sprites.front_default, hd, official?.front_default] : [fallback];
   const fallbacks = [...new Set(fallbackSources.filter(candidate => candidate && candidate !== source))]
-    .map(candidate => ({ source: candidate, pixel: candidate === pixel || candidate === sprites.front_default }));
+    .map(candidate => ({ source: candidate, pixel: candidate === pixel || candidate === sprites.front_default, modern: modernSources.includes(candidate) }));
   return { source, fallback, fallbacks,
     animated: Boolean(selected && ['animated', 'animatedPixel'].includes(preferences.artwork)),
+    modern: modernSources.includes(source),
     pixel: Boolean(source && (source === pixel || source === sprites.front_default || (selected && preferences.artwork === 'animatedPixel'))),
     sprite: pixel || sprites.front_default };
 }
@@ -75,7 +79,7 @@ function installArtworkFallbacks(image, fallbacks, trimSpace, release = () => {}
     image.style.removeProperty('object-view-box');
     image.classList.toggle("pixel-artwork", fallback.pixel);
     image.src = fallback.source;
-    if (trimSpace || fallback.pixel) cropPixelArtwork(fallback.source).then(cropped => {
+    if (trimSpace || fallback.pixel || fallback.modern) cropPixelArtwork(fallback.source).then(cropped => {
       if (image.getAttribute("src") === fallback.source) image.src = cropped;
     });
   };
@@ -169,13 +173,13 @@ async function cropHdArtwork(image, source) {
 async function swapPreparedArtwork(image, artwork, preferences, thumbnail = false) {
   const version = (image.artworkSwapVersion || 0) + 1;
   image.artworkSwapVersion = version;
-  const candidates = [{source:artwork.source, pixel:artwork.pixel, animated:artwork.animated}, ...artwork.fallbacks];
+  const candidates = [{source:artwork.source, pixel:artwork.pixel, animated:artwork.animated, modern:artwork.modern}, ...artwork.fallbacks];
   for (const candidate of candidates) {
     if (!candidate.source) continue;
     let source = candidate.source, crop = null, objectUrl = null;
     try {
       if (candidate.animated) crop = await animatedArtworkBounds(source);
-      else if (candidate.pixel || preferences.artwork === 'champions') source = await cropPixelArtwork(source);
+      else if (candidate.pixel || candidate.modern || preferences.artwork === 'champions') source = await cropPixelArtwork(source);
       else if (preferences.artwork === 'hd') {
         if (thumbnail) {
           const result = await createCardThumbnail(source, true);
@@ -599,3 +603,22 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 });
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const button = document.querySelector('[data-shared-random]');
+  if (!button) return;
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    try {
+      await pokemonNamesReady;
+      const includeForms = window.CompDexSettings.get().includeAltForms;
+      const pool = allPokemonNames.filter(pokemon => includeForms || pokemon.id < 10000);
+      if (!pool.length) throw new Error('Catalogue unavailable');
+      const pokemon = pool[Math.floor(Math.random() * pool.length)];
+      location.href = 'pokemoninfo.html?pokemon=' + encodeURIComponent(pokemon.api);
+    } catch {
+      button.disabled = false;
+      button.title = 'Could not choose a random Pokémon. Please try again.';
+    }
+  });
+});

@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
   <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="pokemoninfo.css?v=stat-colors-22" />
-    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="pokemoninfo.css?v=matchup-navigation-41" />
+    <link rel="stylesheet" href="shared.css?v=matchup-navigation-41" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,7 +13,7 @@
       rel="stylesheet"
     />
 <script src="settings.js?v=animated-default-6"></script>
-    <script src="fetchapi.js?v=evolution-replay-21"></script>
+    <script src="fetchapi.js?v=compact-header-39"></script>
     <script src="evolution.js?v=evolution-replay-21"></script>
     <title>Pokemon Info</title>
     <!--website title-->
@@ -49,11 +49,12 @@
           </button>
           <div id="search-dropdown"></div>
         </div>
+        <button id="random-pokemon" class="shuffle-button" data-shared-random type="button" aria-label="Go to a random Pokémon" title="Go to a random Pokémon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3M18 15l3 3-3 3M3 18h3c2 0 3.5-2 5-4M13 10c1.5-2 3-4 5-4h3M18 3l3 3-3 3"/></svg></button>
       </div>
 
       <div class="bar-right">
-        <button id="share-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
-        <button id="settings-button" type="button">Settings</button>
+        <button id="share-button" type="button" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
+        <button id="settings-button" type="button" aria-label="Settings" title="Settings"><svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-.5 3-2 1.2-2.8-1.1-2 3.5 2.3 1.9v2.4l-2.3 1.9 2 3.5 2.8-1.1 2 1.2.5 3h4l.5-3 2-1.2 2.8 1.1 2-3.5-2.3-1.9v-2.4l2.3-1.9-2-3.5-2.8 1.1-2-1.2-.5-3Z"/><circle cx="11" cy="12" r="3"/></svg><span>Settings</span></button>
       </div>
     </div>
     <div id="pokeinfo"></div>
@@ -75,10 +76,10 @@
       function updateInfoArtwork() {
         if (!currentPokemonData) return;
         const preferences = window.CompDexSettings.get();
-        const { source, pixel: pixelArtwork, animated, fallbacks } = getPokemonArtwork(currentPokemonData.sprites, preferences);
+        const { source, pixel: pixelArtwork, animated, modern, fallbacks } = getPokemonArtwork(currentPokemonData.sprites, preferences);
         const image = document.getElementById("pokemon-main-artwork");
         if (!image) return;
-        swapPreparedArtwork(image, {source, pixel:pixelArtwork, animated, fallbacks}, preferences).then(changed => {
+        swapPreparedArtwork(image, {source, pixel:pixelArtwork, animated, modern, fallbacks}, preferences).then(changed => {
           if (!changed || !image.isConnected) return;
           const mode = window.CompDexSettings.get().animations;
           if (mode === 'off') return;

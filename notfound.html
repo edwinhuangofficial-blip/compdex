@@ -2,7 +2,7 @@
 <html>
   <head><meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="notfound.css" />
-    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="shared.css?v=compact-header-39" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,7 +13,7 @@
       rel="stylesheet"
     />
 <script src="settings.js?v=animated-default-6"></script>
-    <script src="fetchapi.js?v=animation-crop-6"></script>
+    <script src="fetchapi.js?v=compact-header-39"></script>
     <title>Not Found</title>
     <!--website title-->
   </head>
@@ -22,7 +22,7 @@
     <div class="homepagebar">
       <div class="bar-left">
         <h2 id="homebutton" onclick="window.location.replace('index.html');"><img class="site-logo" src="favicon.svg" alt="" /> CompDex</h2>
-        <h3>Pokemon Not Found</h3>
+        <h3 class="page-label">Pokemon Not Found</h3>
       </div>
       <div class="bar-mid">
         <div class="searchbarbut">
@@ -48,11 +48,12 @@
           </button>
           <div id="search-dropdown"></div>
         </div>
+        <button id="random-pokemon" class="shuffle-button" data-shared-random type="button" aria-label="Go to a random Pokémon" title="Go to a random Pokémon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3M18 15l3 3-3 3M3 18h3c2 0 3.5-2 5-4M13 10c1.5-2 3-4 5-4h3M18 3l3 3-3 3"/></svg></button>
       </div>
 
       <div class="bar-right">
-        <button id="share-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
-        <button id="settings-button" type="button">Settings</button>
+        <button id="share-button" type="button" aria-label="Share" title="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
+        <button id="settings-button" type="button" aria-label="Settings" title="Settings"><svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-.5 3-2 1.2-2.8-1.1-2 3.5 2.3 1.9v2.4l-2.3 1.9 2 3.5 2.8-1.1 2 1.2.5 3h4l.5-3 2-1.2 2.8 1.1 2-3.5-2.3-1.9v-2.4l2.3-1.9-2-3.5-2.8 1.1-2-1.2-.5-3Z"/><circle cx="11" cy="12" r="3"/></svg><span>Settings</span></button>
       </div>
     </div>
     <div id="notfoundbody">
@@ -64,7 +65,7 @@
       </button>
     </div>
     <script>
-        const searched = new URLSearchParams(window.location.search).get("pokemon").replace(/-/, " ");
+        const searched = new URLSearchParams(window.location.search).get("pokemon")?.replace(/-/, " ");
         const sub = document.getElementById("notfound-sub");
 
         if(searched) {

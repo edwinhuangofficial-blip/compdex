@@ -241,10 +241,14 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 .evolution-mega-group { display: flex; align-items: flex-start; justify-content: center; gap: 8px; }
 .evolution-mega-arrow { align-self: flex-start; display: grid; place-items: center; height: 160px; font-size: 28px; line-height: 1; }
 .evolution-entry { width: 160px; min-width: 0; flex-shrink: 0; }
-.evolution-card { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 160px; height: 160px; box-sizing: border-box; padding: 8px 5px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--surface)); border-radius: 12px; color: var(--text); background: var(--surface); text-decoration: none; text-align: center; transition: transform 150ms ease, background 150ms ease; }
-.evolution-card:hover { transform: translateY(-3px); background: var(--accent-subtle); }
+.evolution-card { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 160px; height: 160px; box-sizing: border-box; padding: 8px 5px; border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--surface)); border-radius: 12px; color: var(--text); background: var(--surface); text-decoration: none; text-align: center; transition: transform 700ms cubic-bezier(.22, 1, .36, 1), box-shadow 700ms cubic-bezier(.22, 1, .36, 1), background-color 350ms ease; }
+.evolution-card:hover { transform: translateY(-7px); box-shadow: 0 6px 14px rgb(var(--accent-rgb) / 20%); background-color: var(--accent-subtle); border-color: var(--accent); }
 .evolution-card.current { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.evolution-card.current:hover { box-shadow: inset 0 0 0 1px var(--accent), 0 6px 14px rgb(var(--accent-rgb) / 20%); }
+html[data-animations="off"] .evolution-card:hover,
+html[data-animations="reduced"] .evolution-card:hover { transform: none; }
 .evolution-card strong { font-size: 16px; overflow-wrap: anywhere; }
+.evolution-card strong:hover { color: var(--accent); }
 .evolution-number { font-size: 16px; opacity: .75; }
 #pokeinfo .evolution-card img { width: 100%; height: 76px; flex-shrink: 0; object-fit: contain; }
 #pokeinfo .evolution-card img:not(.pixel-artwork) { image-rendering: auto; }
@@ -282,14 +286,13 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
   .evolution-mega-group { flex-direction: column; align-items: center; }
   .evolution-mega-arrow { height: 28px; align-self: center; }
 }
-@media (prefers-reduced-motion: reduce) { .evolution-card { transition: none; } .evolution-card:hover { transform: none; } }
 .info-matchups { max-width: 870px; box-sizing: border-box; margin-top: 16px; padding: 16px 20px; border: 1px solid var(--accent); border-radius: 10px; background: var(--surface); }
 .matchups-header h2 { margin: 0 0 12px; font-size: 24px; }
 .matchup-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid color-mix(in srgb, var(--text) 12%, var(--surface)); }
 .matchup-row h3 { margin: 0; font-size: 17px; }
 .matchup-row h3 small { font-size: 15px; opacity: .75; margin-left: 6px; }
 .matchup-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-#pokeinfo .matchup-badges .type-badge, #pokeinfo .matchup-badges .type-badge-multipliers { margin: 0; font-size: 15px; }
+#pokeinfo .matchup-badges .type-badge, #pokeinfo .matchup-badges .type-badge-multipliers { margin: 0; font-size: 18.75px; padding: 6.25px 11.25px; border-radius: 8.75px; }
 .matchup-note { font-size: 14px; text-transform: none; }
 @media (max-width: 480px) { .info-matchups { padding: 14px; } .matchup-row { grid-template-columns: 100px minmax(0, 1fr); gap: 8px; } }
 @keyframes info-stat-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -482,3 +485,5 @@ position: relative;
 #clear-search.visible {
   display: block;
 }
+
+@media (min-width: 1201px) { #pokeinfo .matchup-badges .type-badge, #pokeinfo .matchup-badges .type-badge-multipliers { padding-left: 12.5px; padding-right: 12.5px; } }

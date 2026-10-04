@@ -8,24 +8,37 @@ let totalResults = null;
 let resultsPending = true;
 // Only keep the active sorted list, referencing the existing name catalogue.
 let filteredResults = null;
+let shuffleSeed = 0;
+function randomPage(matches, size, seed) {
+  const pool = [...matches];
+  let state = seed >>> 0;
+  const random = () => {
+    state = (state + 0x6D2B79F5) >>> 0;
+    let value = Math.imul(state ^ state >>> 15, state | 1);
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+  for (let i = 0; i < Math.min(size, pool.length); i++) {
+    const j = i + Math.floor(random() * (pool.length - i));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, size);
+}
 const grid = document.getElementById("poke-grid");
 const visibleArtwork = new WeakSet();
 const pendingArtwork = new WeakSet();
-const artworkObjectUrls = new WeakMap();
 const cardArtworkSprites = new WeakMap();
 const artworkQueue = [];
 let activeArtworkRequests = 0;
 function releaseImageArtwork(image) {
   image.style.removeProperty('object-view-box');
   image.removeAttribute("src");
-  const url = artworkObjectUrls.get(image);
-  if (url) {
-    URL.revokeObjectURL(url);
-    artworkObjectUrls.delete(image);
-  }
+  image.artworkSwapVersion = (image.artworkSwapVersion || 0) + 1;
+  if (image.preparedObjectUrl) URL.revokeObjectURL(image.preparedObjectUrl);
+  image.preparedObjectUrl = null;
 }
 function queueCardArtwork(image) {
-  if (pendingArtwork.has(image) || image.hasAttribute("src")) return;
+  if (pendingArtwork.has(image) || image.hasAttribute("src") || image.dataset.artworkFailed === image.dataset.artworkSource) return;
   pendingArtwork.add(image);
   artworkQueue.push(image);
   pumpCardArtwork();
@@ -36,19 +49,19 @@ function pumpCardArtwork() {
     if (!image.isConnected || !visibleArtwork.has(image)) { pendingArtwork.delete(image); continue; }
     activeArtworkRequests++;
     const source = image.dataset.artworkSource;
-    const request = image.dataset.modern === 'true'
-      ? resolveModernArtwork(source, JSON.parse(image.dataset.artworkFallbacks || "[]"))
-      : image.dataset.animated === 'true' ? Promise.resolve(source)
-      : image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source, image.dataset.modern === 'true');
-    request.then(thumbnail => {
-      if (image.isConnected && visibleArtwork.has(image) && image.dataset.artworkSource === source) {
-        releaseImageArtwork(image);
-        const source = thumbnail instanceof Blob ? URL.createObjectURL(thumbnail) : thumbnail;
-        if (thumbnail instanceof Blob) artworkObjectUrls.set(image, source);
-        image.src = source;
-        if (image.dataset.animated === 'true') cropAnimatedArtwork(image, source);
-      }
+    const preferences = window.CompDexSettings.get();
+    const request = swapPreparedArtwork(image, {
+      source,
+      animated:image.dataset.animated === 'true',
+      modern:image.dataset.modern === 'true',
+      pixel:image.classList.contains('pixel-artwork'),
+      fallbacks:JSON.parse(image.dataset.artworkFallbacks || '[]')
+    }, preferences, true);
+    const version = image.artworkSwapVersion;
+    request.then(changed => {
+      if (!changed && image.artworkSwapVersion === version) image.dataset.artworkFailed = source;
     }).finally(() => {
+      if (!image.hasAttribute('src')) image.hidden = false;
       pendingArtwork.delete(image);
       activeArtworkRequests--;
       if (image.isConnected && visibleArtwork.has(image) && !image.hasAttribute("src")) queueCardArtwork(image);
@@ -99,6 +112,32 @@ const sortFilter = document.getElementById("sort-filter");
 const statLabels = { total: "BST", speed: "Speed", attack: "Attack", "special-attack": "Sp. Atk", defense: "Defense", "special-defense": "Sp Def", hp: "HP" };
 const generationFilter = document.getElementById("generation-filter");
 const gameFilter = document.getElementById("game-filter");
+const gameVersionFilter = document.getElementById('game-version-filter');
+const mergedGameFamilies = [['1','2'], ['3','4'], ['5','6'], ['8','9'], ['11','14'], ['17','18']];
+const familyLabels = ['Red / Blue / Yellow','Gold / Silver / Crystal','Ruby / Sapphire / Emerald','Diamond / Pearl / Platinum','Black / White / Black 2 / White 2','Sun / Moon / Ultra Sun / Ultra Moon'];
+mergedGameFamilies.forEach((ids,index) => {
+  const first = [...gameFilter.options].find(option => option.value === ids[0]);
+  first.value = ids.join('+');
+  first.textContent = familyLabels[index];
+  ids.slice(1).forEach(id => [...gameFilter.options].find(option => option.value === id)?.remove());
+});
+function selectedGameGroups() {
+  return new Set([...multiFilterSelections.get(gameFilter)].flatMap(value => value.split('+')));
+}
+function syncGameVersions() {
+  const groups = selectedGameGroups();
+  for (const option of [...gameVersionFilter.options].slice(1)) option.hidden = !groups.has(option.dataset.group);
+  if (gameVersionFilter.selectedOptions[0]?.hidden) gameVersionFilter.value = '';
+  gameVersionFilter.disabled = !groups.size;
+}
+let gameAvailabilityData;
+function loadGameAvailability() {
+  if (!gameAvailabilityData) gameAvailabilityData = fetch('data/game-availability.json').then(response => {
+    if (!response.ok) throw new Error('Game availability unavailable');
+    return response.json();
+  }).catch(error => { gameAvailabilityData = null; throw error; });
+  return gameAvailabilityData;
+}
 let gameData;
 function loadGameData() {
   if (!gameData) gameData = fetch("data/games.json").then(response => {
@@ -160,7 +199,7 @@ function refreshCardArtwork(preferences, replayAnimation = false) {
     if (!sprites) return;
     const link = card.querySelector(".pokecard-link");
     let image = link.querySelector("img[data-artwork-source]");
-    const { source, pixel, animated, fallbacks } = getPokemonArtwork(sprites, preferences);
+    const { source, pixel, animated, modern, fallbacks } = getPokemonArtwork(sprites, preferences);
     if (!source) {
       if (image) {
         artworkObserver?.unobserve(image);
@@ -182,7 +221,7 @@ function refreshCardArtwork(preferences, replayAnimation = false) {
     if (changed) releaseImageArtwork(image);
     image.dataset.artworkSource = source;
     image.dataset.animated = String(animated);
-    image.dataset.modern = String(preferences.artwork === 'champions');
+    image.dataset.modern = String(modern);
     if (changed) {
       image.dataset.artworkFallbacks = JSON.stringify(fallbacks);
       installCardArtworkFallback(image);
@@ -339,6 +378,7 @@ function createFilterDropdown(select, isType = false) {
   const selections = multiFilterSelections.get(select);
   const wrapper = document.createElement("div");
   wrapper.className = "filter-dropdown";
+  if (select === gameFilter || select === gameVersionFilter) wrapper.classList.add('game-filter-dropdown');
   const trigger = document.createElement("button");
   trigger.type = "button";
   trigger.id = `${select.id}-trigger`;
@@ -428,6 +468,21 @@ function createFilterDropdown(select, isType = false) {
       trigger.setAttribute("aria-label", `${select.getAttribute("aria-label") || "Sort by"}: ${option.textContent}`);
       buttons.forEach((button, index) => button.setAttribute("aria-checked", String(options[index].value === select.value)));
     }
+    if (select === gameVersionFilter) {
+      trigger.title = 'Recorded game availability is incomplete: breeding and some form changes are not covered.';
+      wrapper.hidden = select.disabled;
+      buttons.forEach((button,index) => { button.hidden = options[index].hidden; button.disabled = options[index].disabled; });
+    }
+    if (select === gameFilter || select === gameVersionFilter) {
+      const fullName = trigger.textContent;
+      const label = document.createElement('span');
+      label.className = 'game-selected-name';
+      label.textContent = fullName;
+      trigger.replaceChildren(label);
+      trigger.title = select === gameVersionFilter
+        ? `${fullName}. Recorded availability is incomplete: breeding and some form changes are not covered.`
+        : fullName;
+    }
   }
   function close() {
     wrapper.classList.remove("open");
@@ -438,14 +493,23 @@ function createFilterDropdown(select, isType = false) {
     filterDropdowns.forEach(dropdown => dropdown.close());
     wrapper.classList.add("open");
     const bounds = trigger.getBoundingClientRect();
-    const above = bounds.top - header.getBoundingClientRect().height - 12;
-    const below = window.innerHeight - bounds.bottom - 12;
+    const panelBounds = filtersPanel.contains(trigger)
+      ? filtersPanel.getBoundingClientRect() : null;
+    const above = bounds.top - Math.max(header.getBoundingClientRect().height, panelBounds?.top || 0) - 12;
+    const below = Math.min(window.innerHeight, panelBounds?.bottom ?? window.innerHeight) - bounds.bottom - 12;
     const opensUp = below < menu.scrollHeight && above > below;
     wrapper.classList.toggle("opens-up", opensUp);
     menu.style.maxHeight = `${Math.max(100, opensUp ? above : below)}px`;
+    if (panelBounds) {
+      menu.style.maxWidth = `${Math.max(100, panelBounds.width - 24)}px`;
+      menu.style.left = '0px';
+      const menuBounds = menu.getBoundingClientRect();
+      const left = Math.max(panelBounds.left + 12, Math.min(menuBounds.left, panelBounds.right - 12 - menuBounds.width));
+      menu.style.left = `${left - bounds.left}px`;
+    }
     trigger.setAttribute("aria-expanded", "true");
     menu.inert = false;
-    buttons[Math.max(0, options.findIndex(option => selections ? selections.has(option.value) : option.value === select.value))].focus();
+    (buttons.find((button,index) => !button.hidden && !button.disabled && (selections ? selections.has(options[index].value) : options[index].value === select.value)) || buttons.find(button => !button.hidden && !button.disabled))?.focus();
   }
   trigger.addEventListener("click", () => wrapper.classList.contains("open") ? close() : open());
   trigger.addEventListener("keydown", event => {
@@ -453,12 +517,13 @@ function createFilterDropdown(select, isType = false) {
   });
   wrapper.addEventListener("keydown", event => {
     if (event.key === "Escape") { event.preventDefault(); close(); trigger.focus(); }
-    const index = buttons.indexOf(document.activeElement);
+    const visibleButtons = buttons.filter(button => !button.hidden && !button.disabled);
+    const index = visibleButtons.indexOf(document.activeElement);
     if (index >= 0 && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
       event.preventDefault();
-      const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1
-        : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
-      buttons[next].focus();
+      const next = event.key === "Home" ? 0 : event.key === "End" ? visibleButtons.length - 1
+        : (index + (event.key === "ArrowDown" ? 1 : -1) + visibleButtons.length) % visibleButtons.length;
+      visibleButtons[next].focus();
     }
   });
   wrapper.addEventListener("focusout", event => { if (!wrapper.contains(event.relatedTarget)) close(); });
@@ -476,19 +541,59 @@ createFilterDropdown(regulationFilter);
 createFilterDropdown(battleFormat);
 createFilterDropdown(categoryFilter);
 createFilterDropdown(gameFilter);
+createFilterDropdown(gameVersionFilter);
 createFilterDropdown(document.getElementById('index-artwork'));
+const filtersToggle = document.getElementById('filters-toggle');
+const filtersLayout = document.querySelector('.homepage-layout');
+const filtersPanel = document.getElementById('homepage-filters');
+const mobileFiltersMedia = matchMedia('(max-width: 760px)');
+const filtersContent = document.getElementById('filters-content');
+let filtersAnimation;
+function syncFiltersPanel(currentHeight = filtersContent.getBoundingClientRect().height, animate = true) {
+  const open = filtersLayout.classList.contains('filters-open');
+  filtersToggle.setAttribute('aria-expanded', String(open));
+  filtersContent.inert = !open;
+  filtersAnimation?.cancel();
+  filtersContent.style.height = open ? 'auto' : '0px';
+  // Measure the actual layout; scrollHeight also includes positioned dropdown menus.
+  const targetHeight = open ? filtersContent.getBoundingClientRect().height : 0;
+  if (animate && !['off', 'reduced'].includes(document.documentElement.dataset.animations)) {
+    filtersContent.style.overflow = 'hidden';
+    filtersAnimation = filtersContent.animate([{height: currentHeight + 'px'}, {height: targetHeight + 'px'}], {duration: 220, easing: 'cubic-bezier(.22, 1, .36, 1)'});
+    filtersAnimation.onfinish = () => { filtersContent.style.overflow = open ? 'visible' : 'hidden'; };
+  } else filtersContent.style.overflow = open ? 'visible' : 'hidden';
+}
+function closeFiltersPanel() {
+  const currentHeight = filtersContent.getBoundingClientRect().height;
+  filtersLayout.classList.remove('filters-open');
+  filterDropdowns.forEach(dropdown => dropdown.close());
+  syncFiltersPanel(currentHeight);
+}
+filtersToggle.addEventListener('click', () => {
+  if (filtersLayout.classList.contains('filters-open')) closeFiltersPanel();
+  else { const currentHeight = filtersContent.getBoundingClientRect().height; filtersLayout.classList.add('filters-open'); syncFiltersPanel(currentHeight); }
+});
+filtersPanel.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !event.defaultPrevented) {
+    closeFiltersPanel();
+    filtersToggle.focus();
+  }
+});
+filtersLayout.classList.toggle('filters-open', !mobileFiltersMedia.matches);
+syncFiltersPanel();
 document.addEventListener('DOMContentLoaded', () => {
   filterDropdowns.forEach(dropdown => dropdown.sync());
 });
 window.addEventListener('compdex:settings-changed', () => {
   filterDropdowns.forEach(dropdown => dropdown.sync());
 });
-const filterUrlKeys = ['q','type','type2','sort','order','reg','format','minSpeed','minStat','minValue','category','gen','game','favorites','related','page'];
+const filterUrlKeys = ['q','type','type2','sort','order','reg','format','minSpeed','minStat','minValue','category','gen','game','version','favorites','related','page','shuffle'];
 function restoreFiltersFromUrl() {
   const params = new URLSearchParams(location.search);
+  shuffleSeed = Number(params.get('shuffle')) >>> 0;
   const selectValue = (key, select) => {
     const value = params.get(key);
-    if (value !== null && [...select.options].some(option => option.value === value)) select.value = value;
+    if (value !== null && [...select.options].some(option => option.value === value && !option.disabled)) select.value = value;
   };
   selectValue('type', typeFilter);
   selectValue('type2', secondTypeFilter);
@@ -500,9 +605,13 @@ function restoreFiltersFromUrl() {
     const valid = new Set([...select.options].map(option => option.value).filter(Boolean));
     const selections = multiFilterSelections.get(select);
     params.getAll(key).flatMap(value => value.split(',')).forEach(value => {
+      if (select === gameFilter && !valid.has(value)) value = [...valid].find(group => group.split('+').includes(value)) || value;
       if (valid.has(value)) selections.add(value);
     });
   }
+  syncGameVersions();
+  selectValue('version', gameVersionFilter);
+  syncGameVersions();
   sortDirection = params.get('order') === 'desc' ? 'desc' : sortDirection;
   nameFilter.value = params.get('q') || '';
   for (const [key, input] of [['minSpeed', minimumSpeed], ['minValue', minimumValue]]) {
@@ -528,6 +637,7 @@ function syncFilterUrl(page = currentPage) {
   add('order', sortDirection, window.CompDexSettings.get().sortDirection);
   add('reg', regulationFilter.value);
   add('format', battleFormat.value, 'doubles');
+  add('version', gameVersionFilter.value);
   add('minSpeed', minimumSpeed.value.trim());
   add('minStat', minimumStat.value, 'total');
   add('minValue', minimumValue.value.trim());
@@ -540,11 +650,13 @@ function syncFilterUrl(page = currentPage) {
   if (favoritesOnly) url.searchParams.set('favorites', '1');
   if (!window.CompDexSettings.get().includeEvolutions) url.searchParams.set('related', '0');
   if (page > 1) url.searchParams.set('page', String(page));
+  if (shuffleSeed) url.searchParams.set('shuffle', String(shuffleSeed));
   if (url.href !== location.href) history.replaceState(history.state, '', url);
 }
 const initialFilterPage = restoreFiltersFromUrl();
 
 function updatePageControls() {
+  document.getElementById('shuffle-page').disabled = loadingPage;
   previousButton.disabled = loadingPage || currentPage <= 1;
   nextButton.disabled = loadingPage || currentPage >= totalPages;
   pageInput.disabled = loadingPage;
@@ -721,7 +833,8 @@ async function loadPage(page, replaceSearch = false) {
   const selectedFavoriteIds = new Set(favoriteIds);
   const selectedGenerations = new Set(multiFilterSelections.get(generationFilter));
   const selectedCategories = new Set(multiFilterSelections.get(categoryFilter));
-  const selectedGames = new Set(multiFilterSelections.get(gameFilter));
+  const selectedGames = selectedGameGroups();
+  const selectedVersion = gameVersionFilter.value;
   const speedMinimum = minimum(minimumSpeed);
   const statMinimum = minimum(minimumValue);
   const minimumStatName = minimumStat.value;
@@ -754,7 +867,17 @@ async function loadPage(page, replaceSearch = false) {
         selectedGames.size ? loadGameData() : null,
       ]);
       if (request !== pageRequest) return;
-      const gameSpecies = games ? new Set(games.games.filter(game => selectedGames.has(String(game.id))).flatMap(game => game.species || [])) : null;
+      let gameSpecies = null;
+      let availablePokemon = null;
+      if (selectedGames.size) {
+        const availability = await loadGameAvailability();
+        if (!isCurrent()) return;
+        const versions = availability.versions.filter(version => selectedVersion ? version.id === selectedVersion : selectedGames.has(version.version_group_id));
+        if (selectedVersion && !versions[0]?.available) throw new Error('Individual game coverage unavailable');
+        availablePokemon = new Set(versions.filter(version => version.available).flatMap(version => version.pokemon));
+        const missingGroups = new Set([...selectedGames].filter(id => !versions.some(version => version.version_group_id === id && version.available)));
+        if (!selectedVersion && missingGroups.size) gameSpecies = new Set(games.games.filter(game => missingGroups.has(String(game.id))).flatMap(game => game.species || []));
+      }
       const generationPokemon = generationNames ? new Set(generationNames.flatMap(names => [...names])) : null;
       const regulation = competitive?.regulations[selectedRegulation];
       const legal = regulation ? new Set(regulation.legal) : null;
@@ -777,7 +900,7 @@ async function loadPage(page, replaceSearch = false) {
           && (!selectedFavoritesOnly || selectedFavoriteIds.has(pokemon.id))
           && (!secondTypeNames || secondTypeNames.has(pokemon.api))
           && (!generationPokemon || generationPokemon.has(pokemon.api))
-          && (!gameSpecies || gameSpecies.has(games.pokemonSpecies[pokemon.id]))
+          && (!selectedGames.size || availablePokemon.has(pokemon.id) || Boolean(gameSpecies?.has(games.pokemonSpecies[pokemon.id])))
           && (!legal || legal.has(competitiveName(pokemon.api)))
           && (!selectedCategories.size || categoryChoices.some(category => category === "ordinary"
             ? categories[pokemon.id] === 0
@@ -799,11 +922,12 @@ async function loadPage(page, replaceSearch = false) {
     }
     evolutionSearchFailed = filteredResults.evolutionSearchFailed;
     const pageUsage = filteredResults.usage;
-    page = Math.min(page, Math.max(1, Math.ceil(filteredResults.matches.length / pageSize)));
+    const displayMatches = shuffleSeed ? randomPage(filteredResults.matches, pageSize, shuffleSeed) : filteredResults.matches;
+    page = Math.min(page, Math.max(1, Math.ceil(displayMatches.length / pageSize)));
     offset = (page - 1) * pageSize;
     data = {
-        count: filteredResults.matches.length,
-        results: filteredResults.matches.slice(offset, offset + pageSize).map(pokemon => ({
+        count: displayMatches.length,
+        results: displayMatches.slice(offset, offset + pageSize).map(pokemon => ({
           name: pokemon.api,
           url: `https://pokeapi.co/api/v2/pokemon/${pokemon.id}`,
         })),
@@ -844,14 +968,14 @@ async function loadPage(page, replaceSearch = false) {
           return `<span>${statLabels[stat]}: ${value ?? "\u2014"}</span>`;
         });
         card.style.setProperty("--extra-stat-lines", statLines.length - 1);
-        const { source: artwork, pixel: pixelArtwork, animated, fallbacks } = getPokemonArtwork(details.sprites, preferences);
+        const { source: artwork, pixel: pixelArtwork, animated, modern, fallbacks } = getPokemonArtwork(details.sprites, preferences);
         link.innerHTML = `<span class="card-stat">${statLines.join("")}</span>${artwork ? `<img class="${pixelArtwork ? 'pixel-artwork' : 'official-artwork'}" data-artwork-source="${artwork}" data-animated="${animated}" alt="${pokemon.name}" decoding="async" />` : '<div class="artwork-placeholder">No artwork</div>'}
-          <p><span class="pokemon-name">${reverseTransformName(details.name)}</span><span class="pokemon-id">#${details.id}</span></p>
+          <p><span class="pokemon-name" title="${reverseTransformName(details.name)}">${reverseTransformName(details.name)}</span><span class="pokemon-id">#${details.id}</span></p>
           <div class="card-types">${details.types.map(({type}) => `<span class="type-badge type-${type.name}">${type.name}</span>`).join("")}</div>`;
         const artworkImage = link.querySelector('img');
         if (artworkImage) {
           artworkImage.dataset.artworkFallbacks = JSON.stringify(fallbacks);
-          artworkImage.dataset.modern = String(preferences.artwork === 'champions');
+          artworkImage.dataset.modern = String(modern);
           installCardArtworkFallback(artworkImage);
         }
       } catch {
@@ -876,6 +1000,7 @@ async function loadPage(page, replaceSearch = false) {
     status.textContent = data.count
       ? `Showing ${offset + 1}–${offset + data.results.length} of ${data.count} Pokémon`
       : "No matching Pokémon found.";
+    if (shuffleSeed && data.count) status.textContent = `Random set of ${data.results.length} from ${filteredResults.matches.length} matching Pokémon. Shuffle again for a new set.`;
     if (evolutionSearchFailed) status.textContent += " Some evolution matches could not load; try again.";
   } catch {
     if (request === pageRequest) status.textContent = "Could not load this page. Check your connection and enter a page number to retry.";
@@ -908,6 +1033,7 @@ pageInput.addEventListener("change", () => {
   else pageInput.value = currentPage;
 });
 function filterHomepage() {
+  shuffleSeed = 0;
   syncFilterUrl(1);
   clearTimeout(filterTimer);
   filteredResults = null;
@@ -944,7 +1070,13 @@ minimumStat.addEventListener("change", () => {
   else syncFilterUrl(currentPage);
 });
 categoryFilter.addEventListener("change", filterHomepage);
-gameFilter.addEventListener("change", filterHomepage);
+gameFilter.addEventListener('change', () => {
+  gameVersionFilter.value = '';
+  syncGameVersions();
+  filterDropdowns.forEach(dropdown => dropdown.sync());
+  filterHomepage();
+});
+gameVersionFilter.addEventListener('change', () => { syncGameVersions(); filterHomepage(); });
 regulationFilter.addEventListener("change", () => {
   lastUsageNoticeKey = "";
   if (regulationFilter.value === "mb") {
@@ -980,12 +1112,14 @@ function resetHomepageFilters() {
   const resultsAffected = nameFilter.value.trim() || typeFilter.value || secondTypeFilter.value
     || sortFilter.value !== settings.defaultSort || sortDirection !== settings.sortDirection
     || regulationFilter.value || minimumSpeed.value.trim() || minimumValue.value.trim()
-    || favoritesOnly || selectedGroups;
+    || favoritesOnly || selectedGroups || shuffleSeed;
   const hasFilters = resultsAffected || battleFormat.value !== "doubles" || minimumStat.value !== "total";
   if (!hasFilters) return;
   multiFilterSelections.forEach(selected => selected.clear());
   categoryFilter.value = "";
   gameFilter.value = "";
+  gameVersionFilter.value = '';
+  syncGameVersions();
   minimumSpeed.value = "";
   minimumValue.value = "";
   minimumStat.value = "total";
@@ -1006,6 +1140,26 @@ function resetHomepageFilters() {
   else syncFilterUrl(currentPage);
 }
 document.getElementById("reset-filters").addEventListener("click", resetHomepageFilters);
+document.getElementById('shuffle-page').addEventListener('click', () => {
+  if (loadingPage) return;
+  shuffleSeed = crypto.getRandomValues(new Uint32Array(1))[0] || 1;
+  loadPage(1);
+});
+document.getElementById('random-pokemon').addEventListener('click', async event => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await pokemonNamesReady;
+    const includeForms = window.CompDexSettings.get().includeAltForms;
+    const pool = allPokemonNames.filter(pokemon => includeForms || pokemon.id < 10000);
+    if (!pool.length) throw new Error('Catalogue unavailable');
+    const pokemon = pool[Math.floor(Math.random() * pool.length)];
+    location.href = `pokemoninfo.html?pokemon=${encodeURIComponent(pokemon.api)}`;
+  } catch {
+    status.textContent = 'Could not choose a random Pokémon. Please try again.';
+    button.disabled = false;
+  }
+});
 window.addEventListener("compdex:reset-filters", resetHomepageFilters);
 window.addEventListener("compdex:settings-changed", event => {
   const { previous, settings } = event.detail;

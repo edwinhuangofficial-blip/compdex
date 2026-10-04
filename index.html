@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
   <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="index.css?v=dropdown-animation-15" />
-    <link rel="stylesheet" href="shared.css" />
+    <link rel="stylesheet" href="index.css?v=compact-header-39" />
+    <link rel="stylesheet" href="shared.css?v=header-37" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,7 +12,7 @@
       rel="stylesheet"
     />
 <script src="settings.js?v=animated-default-6"></script>
-    <script src="fetchapi.js?v=animation-crop-6"></script>
+    <script src="fetchapi.js?v=modern-fallback-33"></script>
     <title>CompDex</title>
   </head>
   <body>
@@ -48,15 +48,18 @@
           </button>
           <div id="search-dropdown"></div>
         </div>
+        <button id="random-pokemon" class="shuffle-button" type="button" aria-label="Go to a random Pokémon" title="Go to a random Pokémon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3M18 15l3 3-3 3M3 18h3c2 0 3.5-2 5-4M13 10c1.5-2 3-4 5-4h3M18 3l3 3-3 3"/></svg></button>
       </div>
 
       <div class="bar-right">
-        <button id="share-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
-        <button id="settings-button" type="button">Settings</button><!--make this work later-->
+        <button id="share-button" type="button" aria-label="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
+        <button id="settings-button" type="button" aria-label="Settings" title="Settings"><svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-.5 3-2 1.2-2.8-1.1-2 3.5 2.3 1.9v2.4l-2.3 1.9 2 3.5 2.8-1.1 2 1.2.5 3h4l.5-3 2-1.2 2.8 1.1 2-3.5-2.3-1.9v-2.4l2.3-1.9-2-3.5-2.8 1.1-2-1.2-.5-3Z"/><circle cx="11" cy="12" r="3"/></svg><span>Settings</span></button><!--make this work later-->
       </div>
     </div>
     <main class="homepage-layout">
-      <section class="homepage-filters" aria-label="Filter Pokémon">
+      <section id="homepage-filters" class="homepage-filters" aria-label="Filter Pokémon">
+        <button id="filters-toggle" type="button" aria-expanded="false" aria-controls="filters-content">Filters <span aria-hidden="true">⌄</span></button>
+        <div id="filters-content" class="filters-content">
         <div class="sidebar-filter-actions">
         <button id="reset-filters" type="button">Reset All Filters</button>
         </div>
@@ -101,7 +104,9 @@
         <select id="generation-filter" aria-label="Generation" title="Generation in which the Pokémon species was introduced">
           <option value="">Generation</option>
         </select>
-        <select id="game-filter" aria-label="Game Pokedex" title="Filters by game Pokedex membership, not catch locations or transfer legality"><option value="">Game</option><option value="1">Red / Blue</option><option value="2">Yellow</option><option value="3">Gold / Silver</option><option value="4">Crystal</option><option value="5">Ruby / Sapphire</option><option value="6">Emerald</option><option value="7">FireRed / LeafGreen</option><option value="8">Diamond / Pearl</option><option value="9">Platinum</option><option value="10">HeartGold / SoulSilver</option><option value="11">Black / White</option><option value="14">Black 2 / White 2</option><option value="15">X / Y</option><option value="16">Omega Ruby / Alpha Sapphire</option><option value="17">Sun / Moon</option><option value="18">Ultra Sun / Ultra Moon</option><option value="19">Let's Go Pikachu / Eevee</option><option value="20">Sword / Shield</option><option value="23">Brilliant Diamond / Shining Pearl</option><option value="24">Legends: Arceus</option><option value="25">Scarlet / Violet</option><option value="30">Legends: Z-A</option><option value="32">Champions</option></select>
+        <select id="game-filter" aria-label="Game family" title="Choose a game family, then an individual game"><option value="">Game</option><option value="1">Red / Blue</option><option value="2">Yellow</option><option value="3">Gold / Silver</option><option value="4">Crystal</option><option value="5">Ruby / Sapphire</option><option value="6">Emerald</option><option value="7">FireRed / LeafGreen</option><option value="8">Diamond / Pearl</option><option value="9">Platinum</option><option value="10">HeartGold / SoulSilver</option><option value="11">Black / White</option><option value="14">Black 2 / White 2</option><option value="15">X / Y</option><option value="16">Omega Ruby / Alpha Sapphire</option><option value="17">Sun / Moon</option><option value="18">Ultra Sun / Ultra Moon</option><option value="19">Let's Go Pikachu / Eevee</option><option value="20">Sword / Shield</option><option value="23">Brilliant Diamond / Shining Pearl</option><option value="24">Legends: Arceus</option><option value="25">Scarlet / Violet</option><option value="30">Legends: Z-A</option><option value="32">Champions</option></select>
+        <select id="game-version-filter" aria-label="Individual game" disabled><option value="">All games</option><option value="1" data-group="1">Red</option><option value="2" data-group="1">Blue</option><option value="3" data-group="2">Yellow</option><option value="4" data-group="3">Gold</option><option value="5" data-group="3">Silver</option><option value="6" data-group="4">Crystal</option><option value="7" data-group="5">Ruby</option><option value="8" data-group="5">Sapphire</option><option value="9" data-group="6">Emerald</option><option value="10" data-group="7">FireRed</option><option value="11" data-group="7">LeafGreen</option><option value="12" data-group="8">Diamond</option><option value="13" data-group="8">Pearl</option><option value="14" data-group="9">Platinum</option><option value="15" data-group="10">HeartGold</option><option value="16" data-group="10">SoulSilver</option><option value="17" data-group="11">Black</option><option value="18" data-group="11">White</option><option value="21" data-group="14">Black 2</option><option value="22" data-group="14">White 2</option><option value="23" data-group="15">X</option><option value="24" data-group="15">Y</option><option value="25" data-group="16">Omega Ruby</option><option value="26" data-group="16">Alpha Sapphire</option><option value="27" data-group="17">Sun</option><option value="28" data-group="17">Moon</option><option value="29" data-group="18">Ultra Sun</option><option value="30" data-group="18">Ultra Moon</option><option value="31" data-group="19">Let's Go Pikachu</option><option value="32" data-group="19">Let's Go Eevee</option><option value="33" data-group="20">Sword</option><option value="34" data-group="20">Shield</option><option value="37" data-group="23" disabled>Brilliant Diamond — data unavailable</option><option value="38" data-group="23" disabled>Shining Pearl — data unavailable</option><option value="39" data-group="24" disabled>Legends: Arceus — data unavailable</option><option value="40" data-group="25" disabled>Scarlet — data unavailable</option><option value="41" data-group="25" disabled>Violet — data unavailable</option><option value="47" data-group="30" disabled>Legends: Z-A — data unavailable</option><option value="49" data-group="32" disabled>Champions — data unavailable</option></select>
+        </div>
       </section>
       <div class="homepage-results">
         <div class="index-toolbar">
@@ -113,6 +118,7 @@
 <select id="index-artwork" aria-label="Artwork style"><option value="hd">HD artwork</option><option value="pixel">Pixel art</option><option value="champions">Modern Models</option><option value="animated">3DS Model</option><option value="animatedPixel">Animated Pixels</option></select>
           <label for="index-shiny">Shiny <input id="index-shiny" type="checkbox" /></label>
           <label for="index-related" title="Include evolution relatives in search results">Related <input id="index-related" type="checkbox" /></label>
+          <button id="shuffle-page" class="shuffle-button" type="button" aria-label="Shuffle a page of matching Pokémon" title="Show a random page from the current filters"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3M18 15l3 3-3 3M3 18h3c2 0 3.5-2 5-4M13 10c1.5-2 3-4 5-4h3M18 3l3 3-3 3"/></svg></button>
         </div>
         <div class="filter-summary" aria-live="polite">
           <span id="filter-results">Results: —</span>
@@ -140,7 +146,7 @@
       </div>
       </div>
     </main>
-    <script src="homepage.js?v=animation-crop-6"></script>
+    <script src="homepage.js?v=header-37"></script>
     <footer class="site-bottom-bar" aria-label="Site footer"></footer>
   </body>
 </html>
