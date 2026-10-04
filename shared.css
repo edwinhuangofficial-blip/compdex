@@ -269,3 +269,9 @@ html[data-animations="reduced"] #search-dropdown, html[data-animations="reduced"
   .pokemon-number-nav #next-pokemon { padding: 5px 20px 5px 7px; }
   #pokemon-number { padding: 5px 3px; }
 }
+
+/* Medium body text preserves the existing bold hierarchy on these pages. */
+body.readable-text { font-weight: 500; }
+.readable-text .pokemon-id { font-weight: 500; }
+.readable-text .settings-note { opacity: 1; color: var(--text); }
+.readable-text input::placeholder { opacity: 1; color: var(--text); font-weight: 500; }

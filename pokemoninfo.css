@@ -171,7 +171,7 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 .stats-heading { margin: 0 0 20px; font-size: 24px; }
 .stats-header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; margin-bottom: 12px; }
 .stats-header .stats-heading { margin: 0; }
-.stats-pokemon-name { font-size: 16px; opacity: .75; }
+.stats-pokemon-name { font-size: 16px; font-weight: 500; color: var(--text); }
 .pokemon-title-number { font-weight: 500; }
 .stats-rows { display: grid; gap: 12px; }
 #pokeinfo .stat-row { display: grid; grid-template-columns: 70px 36px minmax(0, 1fr); gap: 12px; margin: 0; font-size: 18px; }
@@ -187,12 +187,12 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 .stats-footer { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px 18px; margin-top: 12px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--text) 12%, var(--surface)); font-size: 18px; }
 .stat-total { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; font-weight: 600; }
 .stat-total strong { font-size: 26px; }
-.stat-weight { font-size: 16px; text-transform: none; margin-left: auto; }
+.stat-weight { font-size: 16px; font-weight: 500; color: var(--text); text-transform: none; margin-left: auto; }
 .info-abilities { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--text) 12%, var(--surface)); }
 .info-abilities h2 { margin: 0; font-size: 17px; }
 .info-abilities .ability-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; font: inherit; font-size: 16px; text-transform: capitalize; color: var(--text); background: var(--surface); border: 1px solid var(--accent); border-radius: 6px; cursor: pointer; }
 .info-abilities .ability-badge:hover { background: var(--accent-subtle); }
-.info-abilities small { font-size: 12px; opacity: .75; }
+.info-abilities small { font-size: 12px; font-weight: 500; color: var(--text); }
 .ability-info-icon { display: inline-grid; place-items: center; flex-shrink: 0; width: 14px; height: 14px; box-sizing: border-box; border: 1.5px solid currentColor; border-radius: 50%; font: bold 10px/1 Arial, sans-serif; text-transform: none; color: var(--accent); }
 .info-evolution { min-width: 0; box-sizing: border-box; padding: 16px; border: 1px solid var(--accent); border-radius: 10px; background: var(--surface); container-type: inline-size; }
 .info-evolution > h2 { margin: 0 0 14px; font-size: 16px; }
@@ -249,7 +249,7 @@ html[data-animations="off"] .evolution-card:hover,
 html[data-animations="reduced"] .evolution-card:hover { transform: none; }
 .evolution-card strong { font-size: 16px; overflow-wrap: anywhere; }
 .evolution-card strong:hover { color: var(--accent); }
-.evolution-number { font-size: 16px; opacity: .75; }
+.evolution-number { font-size: 16px; font-weight: 500; color: var(--text); }
 #pokeinfo .evolution-card img { width: 100%; height: 76px; flex-shrink: 0; object-fit: contain; }
 #pokeinfo .evolution-card img:not(.pixel-artwork) { image-rendering: auto; }
 .evolution-types { display: flex; justify-content: center; flex-wrap: nowrap; gap: 6px; margin-top: 4px; }
@@ -290,7 +290,7 @@ html[data-animations="reduced"] .evolution-card:hover { transform: none; }
 .matchups-header h2 { margin: 0 0 12px; font-size: 24px; }
 .matchup-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid color-mix(in srgb, var(--text) 12%, var(--surface)); }
 .matchup-row h3 { margin: 0; font-size: 17px; }
-.matchup-row h3 small { font-size: 15px; opacity: .75; margin-left: 6px; }
+.matchup-row h3 small { font-size: 15px; font-weight: 500; color: var(--text); margin-left: 6px; }
 .matchup-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 #pokeinfo .matchup-badges .type-badge, #pokeinfo .matchup-badges .type-badge-multipliers { margin: 0; font-size: 18.75px; padding: 6.25px 11.25px; border-radius: 8.75px; }
 .matchup-note { font-size: 14px; text-transform: none; }
