@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="pokemoninfo.css?v=info-title-spacing-19" />
+    <link rel="stylesheet" href="pokemoninfo.css?v=stat-colors-22" />
     <link rel="stylesheet" href="shared.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
@@ -258,7 +258,7 @@
                 ${data.stats.map((entry, index) => `<div class="stat-row">
                   <span class="stat-name">${["HP", "Attack", "Defense", "Sp. Atk", "Sp. Def", "Speed"][index]}</span>
                   <span class="stat-num">${entry.base_stat}</span>
-                  <div class="stat-bar-container"><div class="stat-bar stat-${entry.base_stat < 40 ? "low" : entry.base_stat < 90 ? "medium" : "high"}" style="width: ${Math.min(100, entry.base_stat / 255 * 100)}%"></div></div>
+                  <div class="stat-bar-container"><div class="stat-bar stat-${entry.base_stat < 30 ? "red" : entry.base_stat < 60 ? "orange" : entry.base_stat < 90 ? "yellow" : entry.base_stat < 130 ? "green" : "purple"}" style="width: ${Math.min(100, entry.base_stat / 255 * 100)}%"></div></div>
                 </div>`).join("")}
               </div>
               <div class="stats-footer">
