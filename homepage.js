@@ -16,6 +16,7 @@ const cardArtworkSprites = new WeakMap();
 const artworkQueue = [];
 let activeArtworkRequests = 0;
 function releaseImageArtwork(image) {
+  image.style.removeProperty('object-view-box');
   image.removeAttribute("src");
   const url = artworkObjectUrls.get(image);
   if (url) {
@@ -35,14 +36,17 @@ function pumpCardArtwork() {
     if (!image.isConnected || !visibleArtwork.has(image)) { pendingArtwork.delete(image); continue; }
     activeArtworkRequests++;
     const source = image.dataset.artworkSource;
-    const request = image.dataset.animated === 'true' ? Promise.resolve(source)
-      : image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source);
+    const request = image.dataset.modern === 'true'
+      ? resolveModernArtwork(source, JSON.parse(image.dataset.artworkFallbacks || "[]"))
+      : image.dataset.animated === 'true' ? Promise.resolve(source)
+      : image.classList.contains("pixel-artwork") ? cropPixelArtwork(source) : createCardThumbnail(source, image.dataset.modern === 'true');
     request.then(thumbnail => {
       if (image.isConnected && visibleArtwork.has(image) && image.dataset.artworkSource === source) {
         releaseImageArtwork(image);
         const source = thumbnail instanceof Blob ? URL.createObjectURL(thumbnail) : thumbnail;
         if (thumbnail instanceof Blob) artworkObjectUrls.set(image, source);
         image.src = source;
+        if (image.dataset.animated === 'true') cropAnimatedArtwork(image, source);
       }
     }).finally(() => {
       pendingArtwork.delete(image);
@@ -148,13 +152,7 @@ function updateUsageNotice(regulation, usage, format, showUsage) {
 }
 const header = document.querySelector(".homepagebar");
 function installCardArtworkFallback(image) {
-  image.addEventListener("error", () => {
-    const fallback = image.dataset.artworkFallback;
-    if (!fallback || image.getAttribute("src") === fallback) return;
-    releaseImageArtwork(image);
-    image.className = "official-artwork";
-    image.src = fallback;
-  });
+  installArtworkFallbacks(image, JSON.parse(image.dataset.artworkFallbacks || "[]"), image.dataset.modern === 'true', () => releaseImageArtwork(image));
 }
 function refreshCardArtwork(preferences, replayAnimation = false) {
   grid.querySelectorAll(".pokecard").forEach(card => {
@@ -162,7 +160,7 @@ function refreshCardArtwork(preferences, replayAnimation = false) {
     if (!sprites) return;
     const link = card.querySelector(".pokecard-link");
     let image = link.querySelector("img[data-artwork-source]");
-    const { source, pixel, animated, fallback } = getPokemonArtwork(sprites, preferences);
+    const { source, pixel, animated, fallbacks } = getPokemonArtwork(sprites, preferences);
     if (!source) {
       if (image) {
         artworkObserver?.unobserve(image);
@@ -184,7 +182,11 @@ function refreshCardArtwork(preferences, replayAnimation = false) {
     if (changed) releaseImageArtwork(image);
     image.dataset.artworkSource = source;
     image.dataset.animated = String(animated);
-    image.dataset.artworkFallback = fallback && fallback !== source ? fallback : "";
+    image.dataset.modern = String(preferences.artwork === 'champions');
+    if (changed) {
+      image.dataset.artworkFallbacks = JSON.stringify(fallbacks);
+      installCardArtworkFallback(image);
+    }
     if (changed) image.className = pixel ? "pixel-artwork" : "official-artwork";
     if (isNew) {
       if (artworkObserver) artworkObserver.observe(image);
@@ -842,13 +844,14 @@ async function loadPage(page, replaceSearch = false) {
           return `<span>${statLabels[stat]}: ${value ?? "\u2014"}</span>`;
         });
         card.style.setProperty("--extra-stat-lines", statLines.length - 1);
-        const { source: artwork, pixel: pixelArtwork, animated, fallback } = getPokemonArtwork(details.sprites, preferences);
+        const { source: artwork, pixel: pixelArtwork, animated, fallbacks } = getPokemonArtwork(details.sprites, preferences);
         link.innerHTML = `<span class="card-stat">${statLines.join("")}</span>${artwork ? `<img class="${pixelArtwork ? 'pixel-artwork' : 'official-artwork'}" data-artwork-source="${artwork}" data-animated="${animated}" alt="${pokemon.name}" decoding="async" />` : '<div class="artwork-placeholder">No artwork</div>'}
           <p><span class="pokemon-name">${reverseTransformName(details.name)}</span><span class="pokemon-id">#${details.id}</span></p>
           <div class="card-types">${details.types.map(({type}) => `<span class="type-badge type-${type.name}">${type.name}</span>`).join("")}</div>`;
         const artworkImage = link.querySelector('img');
         if (artworkImage) {
-          artworkImage.dataset.artworkFallback = fallback && fallback !== artwork ? fallback : "";
+          artworkImage.dataset.artworkFallbacks = JSON.stringify(fallbacks);
+          artworkImage.dataset.modern = String(preferences.artwork === 'champions');
           installCardArtworkFallback(artworkImage);
         }
       } catch {

@@ -188,7 +188,6 @@ margin: 0 auto;
 .filter-trigger .type-badge { margin: 4px 0; }
 .homepage-filters .type-badge { width: 52px; padding: 3px 4px; margin: 0; font-size: 12px; line-height: 1.2; border-radius: 7px; }
 .filter-menu { position: absolute; top: calc(100% + 8px); left: 0; min-width: 100%; width: max-content; max-width: min(290px, 85vw); padding: 8px; box-sizing: border-box; border: 2px solid var(--accent); border-radius: 8px; background: var(--surface); box-shadow: 0 8px 20px rgb(var(--accent-rgb) / 18%); z-index: 80; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 220ms ease, transform 220ms cubic-bezier(.22, 1, .36, 1), visibility 220ms; }
-.filter-dropdown:not(.open) .filter-menu { display: none; }
 .filter-dropdown.open .filter-menu { opacity: 1; visibility: visible; transform: translateY(0); }
 .type-filter-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .homepage-filters .filter-option { display: block; width: 100%; border: none; border-radius: 5px; padding: 10px; text-align: left; white-space: nowrap; transition: background-color 180ms ease; }

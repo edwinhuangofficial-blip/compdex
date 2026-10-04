@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
-  <head><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="pokemoninfo.css" />
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="pokemoninfo.css?v=info-title-spacing-19" />
     <link rel="stylesheet" href="shared.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
@@ -12,8 +12,9 @@
       href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <script src="settings.js"></script>
-    <script src="fetchapi.js"></script>
+<script src="settings.js?v=animated-default-6"></script>
+    <script src="fetchapi.js?v=evolution-replay-21"></script>
+    <script src="evolution.js?v=evolution-replay-21"></script>
     <title>Pokemon Info</title>
     <!--website title-->
   </head>
@@ -74,22 +75,47 @@
       function updateInfoArtwork() {
         if (!currentPokemonData) return;
         const preferences = window.CompDexSettings.get();
-        const pixel = preferences.artwork === "pixel";
-        const { source, pixel: pixelArtwork, sprite } = getPokemonArtwork(currentPokemonData.sprites, preferences);
+        const { source, pixel: pixelArtwork, animated, fallbacks } = getPokemonArtwork(currentPokemonData.sprites, preferences);
         const image = document.getElementById("pokemon-main-artwork");
         if (!image) return;
-        image.hidden = !source;
-        if (source) image.src = source;
-        image.classList.toggle("pixel-artwork", pixelArtwork);
-        if (pixelArtwork) cropPixelArtwork(source).then(cropped => {
-          if (image.getAttribute("src") === source) image.src = cropped;
+        swapPreparedArtwork(image, {source, pixel:pixelArtwork, animated, fallbacks}, preferences).then(changed => {
+          if (!changed || !image.isConnected) return;
+          const mode = window.CompDexSettings.get().animations;
+          if (mode === 'off') return;
+          image.getAnimations().forEach(animation => animation.cancel());
+          const frames = mode === 'reduced'
+            ? [{opacity:0}, {opacity:1}]
+            : [{opacity:0, translate:'0 -24px'}, {opacity:1, translate:'0 0'}];
+          image.animate(frames, {
+            duration:mode === 'reduced' ? 120 : 700,
+            easing:mode === 'reduced' ? 'ease-out' : 'cubic-bezier(.22, 1, .36, 1)'
+          });
         });
-        const secondary = document.getElementById("pokemon-pixel-artwork");
-        secondary.hidden = pixel || !sprite;
-        if (sprite) secondary.src = sprite;
-        if (!secondary.hidden) cropPixelArtwork(sprite).then(cropped => {
-          if (secondary.getAttribute("src") === sprite) secondary.src = cropped;
-        });
+        document.getElementById("info-artwork").value = preferences.artwork;
+        syncInfoArtworkMenu();
+        document.getElementById("info-shiny").checked = preferences.shiny;
+      }
+      function syncInfoArtworkMenu() {
+        const select = document.getElementById("info-artwork");
+        document.getElementById("info-artwork-trigger").textContent = select.selectedOptions[0].textContent;
+        document.querySelectorAll(".info-artwork-option").forEach(button => button.setAttribute("aria-checked", String(button.dataset.value === select.value)));
+      }
+      function closeInfoArtworkMenu() {
+        document.getElementById("info-artwork-dropdown").classList.remove("open");
+        document.getElementById("info-artwork-trigger").setAttribute("aria-expanded", "false");
+        document.getElementById("info-artwork-menu").inert = true;
+      }
+      const infoFavoriteIds = new Set();
+      try {
+        const saved = JSON.parse(localStorage.getItem("compdex.favorites.v1") || "[]");
+        if (Array.isArray(saved)) saved.filter(id => Number.isInteger(id) && id > 0).forEach(id => infoFavoriteIds.add(id));
+      } catch {}
+      function syncInfoFavorite() {
+        const button = document.getElementById("info-favorite");
+        if (!button || !currentPokemonData) return;
+        const selected = infoFavoriteIds.has(currentPokemonData.id);
+        button.setAttribute("aria-pressed", String(selected));
+        button.setAttribute("aria-label", `${selected ? "Unfavorite" : "Favorite"} ${currentPokemonData.name.replace(/-/g, " ")}`);
       }
 
       async function loadPokemon() {
@@ -101,7 +127,7 @@
           return;
         }
         const data = await response.json();
-        currentPokemonData = { sprites: compactPokemonSprites(data.sprites) };
+        currentPokemonData = { id: data.id, name: data.name, sprites: compactPokemonSprites(data.sprites) };
         const numberInput = document.getElementById("pokemon-number");
         numberInput.value = data.id;
         numberInput.disabled = false;
@@ -179,8 +205,8 @@
         })
         .then(function(abilityData){
           const englishDesc = abilityData.effect_entries.find(entry => entry.language.name === "en")
-          abilityCache[abilityName] = englishDesc.short_effect;
-        });
+          abilityCache[abilityName] = englishDesc?.short_effect || abilityData.flavor_text_entries.find(entry => entry.language.name === "en")?.flavor_text?.replace(/\s+/g, " ") || "No description available.";
+        }).catch(() => { abilityCache[abilityName] = "Could not load description."; });
       }
 
         
@@ -202,80 +228,100 @@
         const totalStats = data.stats[0].base_stat + data.stats[1].base_stat + data.stats[2].base_stat + data.stats[3].base_stat + data.stats[4].base_stat + data.stats[5].base_stat;
         const weightKg = (data.weight / 10).toFixed(1);
         const weightLbs = (data.weight / 10 * 2.205).toFixed(1);
+        const displayName = reverseTransformName(data.name);
 
         info.innerHTML = `
         <div class="elements_sidebyside">
-          <h1>${data.name.replace(/-/g, " ")
-            .replace("alola", "alolan")
-            .replace("galar", "galarian")
-            .replace("hisui", "hisuian")
-            .replace("paldea", "paldean")
-            .replace(/(\w+) (alolan|galarian|hisuian|paldean|mega|primal)/, "$2 $1")
-            }</h1>
-          <h2>#${data.id}</h2>
+          <h1>${displayName} <span class="pokemon-title-number">· #${data.id}</span></h1>
+          <button id="info-favorite" type="button" aria-pressed="false" aria-label="Favorite Pokémon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z" /></svg></button>
         </div>
-        <div class="sprite-stats">
+        <div class="info-layout"><div class="info-primary"><div class="sprite-stats">
           <div class="sprites">
+            <div class="info-artwork-controls">
+              <div id="info-artwork-dropdown" class="info-artwork-dropdown">
+<select id="info-artwork" aria-label="Artwork style" hidden><option value="hd">HD artwork</option><option value="pixel">Pixel art</option><option value="champions">Modern Models</option><option value="animated">3DS Model</option><option value="animatedPixel">Animated Pixels</option></select>
+                <button id="info-artwork-trigger" type="button" aria-label="Artwork style" aria-haspopup="menu" aria-expanded="false" aria-controls="info-artwork-menu">HD artwork</button>
+                <div id="info-artwork-menu" class="filter-menu" role="menu" aria-labelledby="info-artwork-trigger" inert>
+                  ${[["hd", "HD artwork"], ["pixel", "Pixel art"], ["champions", "Modern Models"], ["animated", "3DS Model"], ["animatedPixel", "Animated Pixels"]].map(([value, label]) => `<button type="button" class="info-artwork-option" role="menuitemradio" aria-checked="false" data-value="${value}">${label}</button>`).join("")}
+                </div>
+              </div>
+              <label for="info-shiny">Shiny <input id="info-shiny" type="checkbox" /></label>
+            </div>
+            <div class="info-artwork-stage">
             <img id="pokemon-main-artwork" alt="${data.name}" />
-            <img id="pokemon-pixel-artwork" class="pixel-artwork" src="${data.sprites.front_default}" alt="${data.name} pixel sprite" />
+            </div>
+            <div class="info-artwork-types" aria-label="Pokémon types">${types.map(type => `<span class="type-badge type-${type}">${type}</span>`).join("")}</div>
           </div>
             <div class="stats">
-              <div class="stat-row">
-                <span class="stat-name">HP</span>
-                <span class="stat-num">${data.stats[0].base_stat}</span>
-                <div class="stat-bar-container">
-                  <div class="stat-bar" style="width: ${(data.stats[0].base_stat / 255) * 100}%"></div>
-                </div> 
+              <div class="stats-header"><h2 class="stats-heading">Base stats</h2><span class="stats-pokemon-name">${displayName} · #${data.id}</span></div>
+              <div class="stats-rows">
+                ${data.stats.map((entry, index) => `<div class="stat-row">
+                  <span class="stat-name">${["HP", "Attack", "Defense", "Sp. Atk", "Sp. Def", "Speed"][index]}</span>
+                  <span class="stat-num">${entry.base_stat}</span>
+                  <div class="stat-bar-container"><div class="stat-bar stat-${entry.base_stat < 40 ? "low" : entry.base_stat < 90 ? "medium" : "high"}" style="width: ${Math.min(100, entry.base_stat / 255 * 100)}%"></div></div>
+                </div>`).join("")}
               </div>
-              <div class="stat-row">
-                <span class="stat-name">Attack</span>
-                <span class="stat-num">${data.stats[1].base_stat}</span>
-                <div class="stat-bar-container">
-                  <div class="stat-bar" style="width: ${(data.stats[1].base_stat / 255) * 100}%"></div>
-                </div> 
+              <div class="stats-footer">
+                <span class="stat-total">Base Stat Total <strong>${totalStats}</strong></span>
+                <span class="stat-weight">Weight: ${weightKg} kg / ${weightLbs} lbs</span>
               </div>
-              <div class="stat-row">
-                <span class="stat-name">Defense</span>
-                <span class="stat-num">${data.stats[2].base_stat}</span>
-                <div class="stat-bar-container">
-                  <div class="stat-bar" style="width: ${(data.stats[2].base_stat / 255) * 100}%"></div>
-                </div> 
-              </div>
-              <div class="stat-row">
-                <span class="stat-name">Sp. Atk</span>
-                <span class="stat-num">${data.stats[3].base_stat}</span>
-                <div class="stat-bar-container">
-                  <div class="stat-bar" style="width: ${(data.stats[3].base_stat / 255) * 100}%"></div>
-                </div> 
-              </div>
-              <div class="stat-row">
-                <span class="stat-name">Sp. Def</span>
-                <span class="stat-num">${data.stats[4].base_stat}</span>
-                <div class="stat-bar-container">
-                  <div class="stat-bar" style="width: ${(data.stats[4].base_stat / 255) * 100}%"></div>
-                </div> 
-              </div>
-              <div class="stat-row">
-                <span class="stat-name">Speed</span>
-                <span class="stat-num">${data.stats[5].base_stat}</span>
-                <div class="stat-bar-container">
-                  <div class="stat-bar" style="width: ${(data.stats[5].base_stat / 255) * 100}%"></div>
-                </div> 
-              </div>
-              <div class="stat-row">
-                <span class="stat-name">Total</span>
-                <span class="stat-num" style="width:auto">&nbsp;&nbsp;${totalStats} &nbsp;&nbsp;&nbsp;&nbsp; Weight: ${weightKg}kg / ${weightLbs}lbs</span>
-              </div>
+              <div class="info-abilities"><h2>Abilities</h2>${data.abilities.map((a) => `<button type="button" class="ability-badge" data-ability="${a.ability.name}" onmouseenter="showAbilityTooltip(event, '${a.ability.name}')" onmousemove="showAbilityTooltip(event, '${a.ability.name}')" onmouseleave="hideAbilityTooltip()" onfocus="showAbilityTooltip(event, '${a.ability.name}')" onblur="hideAbilityTooltip()" onclick="showAbilityTooltip(event, '${a.ability.name}')">${a.ability.name.replace(/-/g, " ")}${a.is_hidden ? '<small>Hidden</small>' : ''}<span class="ability-info-icon" aria-hidden="true">i</span></button>`).join("")}</div>
               </div>
             </div>
-        <h2>Abilities- ${data.abilities.map((a) => `<span class="ability-badge" data-ability="${a.ability.name}" onmouseenter = "showAbilityTooltip(event, '${a.ability.name}')" onmousemove = "showAbilityTooltip(event, '${a.ability.name}')" onmouseleave = "hideAbilityTooltip()">${a.ability.name.replace(/-/g, " ")}</span>`).join(", ")}</h2>
-       <h2>Typing &nbsp;${types.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}</h2>
-        ${strongAgainstList.length > 0 ? `<h2>STAB Super Effective to &nbsp;${strongAgainstList.map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}</h2>` : ""}
-        ${weaknessesList.length > 0 ? `<h2>Weaknesses &nbsp;${weaknessesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}x</span>`).join(" ")}</h2>` : ""}
-        ${resistancesList.length > 0 ? `<h2>Resistances &nbsp;${resistancesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}x</span>`).join(" ")}</h2>` : ""}
-        ${immunitiesList.length > 0 ? `<h2>Immunities &nbsp;${immunitiesList.map((t) => (t === "ground" && abilities.includes("levitate") ? "ground" : t)).map(t => `<span class="type-badge type-${t}">${t}</span>`).join(" ")}${abilities.includes("levitate") ? " *if levitate is active" : ""}</h2>` : ""}
+        <section class="info-matchups" aria-label="Type matchups">
+          <div class="matchups-header"><h2>Type matchups</h2></div>
+          ${strongAgainstList.length > 0 ? `<div class="matchup-row"><h3>STAB <small>1.5x</small></h3><div class="matchup-badges">${strongAgainstList.map(t => `<span class="type-badge type-${t}">${t}</span>`).join("")}</div></div>` : ""}
+          ${weaknessesList.length > 0 ? `<div class="matchup-row"><h3>Weaknesses</h3><div class="matchup-badges">${weaknessesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}×</span>`).join("")}</div></div>` : ""}
+          ${resistancesList.length > 0 ? `<div class="matchup-row"><h3>Resistances</h3><div class="matchup-badges">${resistancesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}×</span>`).join("")}</div></div>` : ""}
+          ${immunitiesList.length > 0 ? `<div class="matchup-row"><h3>Immunities</h3><div class="matchup-badges">${immunitiesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} 0×</span>`).join("")}${abilities.includes("levitate") ? '<small class="matchup-note">Ground immunity requires Levitate.</small>' : ""}</div></div>` : ""}
+        </section>
+        </div><section class="info-evolution" aria-label="Evolution line"><h2>Evolution line</h2><div id="evolution-content" aria-live="polite" aria-busy="true">Loading evolution line…</div></section></div>
         `;
         updateInfoArtwork();
+        window.CompDexEvolution.load(data);
+        syncInfoFavorite();
+        document.getElementById("info-favorite").addEventListener("click", () => {
+          if (infoFavoriteIds.has(data.id)) infoFavoriteIds.delete(data.id);
+          else infoFavoriteIds.add(data.id);
+          try { localStorage.setItem("compdex.favorites.v1", JSON.stringify([...infoFavoriteIds])); } catch {}
+          syncInfoFavorite();
+        });
+        const changeArtwork = () => window.CompDexSettings.setArtwork(document.getElementById("info-artwork").value, document.getElementById("info-shiny").checked);
+        document.getElementById("info-artwork").addEventListener("change", changeArtwork);
+        document.getElementById("info-shiny").addEventListener("change", changeArtwork);
+        const artworkDropdown = document.getElementById("info-artwork-dropdown");
+        const artworkTrigger = document.getElementById("info-artwork-trigger");
+        const artworkMenu = document.getElementById("info-artwork-menu");
+        const artworkOptions = [...artworkMenu.querySelectorAll("button")];
+        const openArtworkMenu = () => {
+          artworkDropdown.classList.add("open");
+          artworkTrigger.setAttribute("aria-expanded", "true");
+          artworkMenu.inert = false;
+          artworkOptions.find(button => button.dataset.value === document.getElementById("info-artwork").value).focus();
+        };
+        artworkTrigger.addEventListener("click", () => artworkDropdown.classList.contains("open") ? closeInfoArtworkMenu() : openArtworkMenu());
+        artworkTrigger.addEventListener("keydown", event => {
+          if (["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); openArtworkMenu(); }
+        });
+        artworkOptions.forEach(button => button.addEventListener("click", () => {
+          document.getElementById("info-artwork").value = button.dataset.value;
+          closeInfoArtworkMenu();
+          artworkTrigger.focus();
+          changeArtwork();
+        }));
+        artworkMenu.addEventListener("keydown", event => {
+          const index = artworkOptions.indexOf(document.activeElement);
+          if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? artworkOptions.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + artworkOptions.length) % artworkOptions.length;
+            artworkOptions[next].focus();
+          }
+        });
+        document.addEventListener("click", event => { if (!artworkDropdown.contains(event.target)) closeInfoArtworkMenu(); });
+        artworkDropdown.addEventListener("keydown", event => {
+          if (event.key === "Escape") { closeInfoArtworkMenu(); artworkTrigger.focus(); }
+        });
+        artworkDropdown.addEventListener("focusout", event => { if (!artworkDropdown.contains(event.relatedTarget)) closeInfoArtworkMenu(); });
       }
       
       function showAbilityTooltip(event, abilityName){
@@ -287,8 +333,11 @@
           tooltip.textContent = "Loading...";
         }
         tooltip.classList.add("visible");
-        tooltip.style.left = Math.max(8, Math.min(event.clientX + 5, window.innerWidth - tooltip.offsetWidth - 8)) + "px";
-        tooltip.style.top = Math.max(8, event.clientY - tooltip.offsetHeight - 10) + "px";
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const x = Number.isFinite(event.clientX) ? event.clientX : bounds.left;
+        const y = Number.isFinite(event.clientY) ? event.clientY : bounds.top;
+        tooltip.style.left = Math.max(8, Math.min(x + 5, window.innerWidth - tooltip.offsetWidth - 8)) + "px";
+        tooltip.style.top = Math.max(8, y - tooltip.offsetHeight - 10) + "px";
       }
 
       function hideAbilityTooltip(){

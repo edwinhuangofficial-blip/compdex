@@ -85,7 +85,7 @@ html[data-animations="reduced"] #search-dropdown, html[data-animations="reduced"
 .share-notice { position: absolute; top: calc(100% + 8px); right: 0; width: max-content; max-width: min(300px, 80vw); padding: 10px 12px; border: 1px solid var(--accent); border-radius: 8px; background: var(--surface); color: var(--text); font-size: 14px; box-shadow: 0 4px 12px rgb(var(--accent-rgb) / 15%); }
 .share-notice input { display: block; width: 250px; max-width: 100%; margin-top: 6px; box-sizing: border-box; border: 1px solid var(--accent); border-radius: 4px; padding: 5px; background: var(--surface); color: var(--text); font: inherit; }
 #homebutton { display: flex; align-items: center; gap: 8px; }
-.site-logo { width: 1em; height: 1em; flex-shrink: 0; }
+.site-logo { width: 1em; height: 1em; flex-shrink: 0; content: var(--site-logo-image, url("favicon.svg")); }
 .pokemon-id { font-weight: normal; }
 .pokemon-name { font-weight: bold; }
 .page-label { color: var(--accent); }

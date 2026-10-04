@@ -1,13 +1,13 @@
 (() => {
   const storageKey = 'compdex.settings.v1';
-  const defaults = Object.freeze({theme:'light',artwork:'hd',defaultArtwork:'hd',shiny:false,includeEvolutions:true,defaultRelated:true,includeAltForms:true,defaultSort:'id',sortDirection:'asc',pageSize:52,animations:'full',accent:'#66adff'});
-  const artworkStyles = ['hd','pixel','home','animated'];
+  const defaults = Object.freeze({theme:'light',artwork:'animatedPixel',defaultArtwork:'animatedPixel',shiny:false,includeEvolutions:true,defaultRelated:true,includeAltForms:true,defaultSort:'id',sortDirection:'asc',pageSize:52,animations:'full',accent:'#66adff'});
+  const artworkStyles = ['hd','pixel','champions','animated','animatedPixel'];
   function validate(value) {
     const v = value && typeof value === 'object' ? value : {};
     return {
       theme: ['light','dark','system'].includes(v.theme) ? v.theme : defaults.theme,
-      artwork: v.artwork === '3ds' ? 'animated' : artworkStyles.includes(v.artwork) ? v.artwork : defaults.artwork,
-      defaultArtwork: artworkStyles.includes(v.defaultArtwork) ? v.defaultArtwork : defaults.defaultArtwork,
+      artwork: v.artwork === 'home' ? 'champions' : v.artwork === '3ds' ? 'animated' : artworkStyles.includes(v.artwork) ? v.artwork : defaults.artwork,
+      defaultArtwork: v.defaultArtwork === 'home' ? 'champions' : artworkStyles.includes(v.defaultArtwork) ? v.defaultArtwork : defaults.defaultArtwork,
       shiny: typeof v.shiny === 'boolean' ? v.shiny : defaults.shiny,
       includeEvolutions: typeof v.includeEvolutions === 'boolean' ? v.includeEvolutions : defaults.includeEvolutions,
       defaultRelated: typeof v.defaultRelated === 'boolean' ? v.defaultRelated : defaults.defaultRelated,
@@ -48,7 +48,7 @@
     const subtle = preferences.accent === defaults.accent && theme === 'light' ? '#f0edff' : `rgb(${rgb.map((c,i)=>Math.round(c*.13+base[i]*.87)).join(' ')})`;
     root.style.setProperty('--accent-subtle',subtle);
     const url = logoUrl();
-    document.querySelectorAll('.site-logo').forEach(image => { image.src = url; });
+    root.style.setProperty('--site-logo-image', `url("${url}")`);
     const favicon = document.querySelector('link[rel="icon"]');
     if (favicon) favicon.href = url;
   }
@@ -59,7 +59,11 @@
     syncCardAppearance();
     window.dispatchEvent(new CustomEvent('compdex:settings-changed',{detail:{previous,settings:{...preferences}}}));
   }
-  window.CompDexSettings = { get:()=>({...preferences}), defaults:()=>({...defaults}) };
+  window.CompDexSettings = { get:()=>({...preferences}), defaults:()=>({...defaults}), setArtwork:(artwork,shiny)=>{
+    const next=validate({...preferences,artwork,shiny});
+    try { localStorage.setItem(storageKey,JSON.stringify(next)); } catch {}
+    publish(next);
+  } };
   applyAppearance();
   systemTheme.addEventListener('change',applyAppearance);
   window.addEventListener('storage',event=>{
@@ -142,7 +146,7 @@
       <form id="settings-form">
         <div class="settings-content">
           <div class="settings-row"><label for="setting-theme">Theme</label><select id="setting-theme"><option value="light">Light</option><option value="dark">Dark</option><option value="system">System</option></select></div>
-          <div class="settings-row"><label for="setting-default-artwork">Default rendering</label><select id="setting-default-artwork"><option value="hd">HD artwork</option><option value="pixel">Pixel art</option><option value="home">Home Model</option><option value="animated">3DS Model</option></select></div>
+<div class="settings-row"><label for="setting-default-artwork">Default rendering</label><select id="setting-default-artwork"><option value="hd">HD artwork</option><option value="pixel">Pixel art</option><option value="champions">Modern Models</option><option value="animated">3DS Model</option><option value="animatedPixel">Animated Pixels</option></select></div>
           <div class="settings-row"><label for="setting-color-hex">Accent color</label><div class="settings-color"><span aria-hidden="true">#</span><input id="setting-color-hex" type="text" minlength="6" maxlength="6" pattern="[0-9a-fA-F]{6}" required spellcheck="false" aria-label="Accent color hexadecimal value" /><input id="setting-color-picker" type="color" aria-label="Choose accent color" /></div></div>
           <div class="settings-row"><label for="setting-page-size">Pokémon per page</label><input id="setting-page-size" type="number" min="1" max="200" step="1" required /></div>
           <div class="settings-row"><label for="setting-default-related">Related on by default</label><input id="setting-default-related" type="checkbox" /></div>

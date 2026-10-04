@@ -27,9 +27,14 @@ const pokemonCache = {};
 // Only these front-facing sprites are used by the index and info page.
 function compactPokemonSprites(sprites) {
   const front = value => value && ({ front_default: value.front_default, front_shiny: value.front_shiny });
+  const artworkId = (sprites.other?.['official-artwork']?.front_default || sprites.front_default || '').match(/\/(\d+)\.png$/)?.[1];
+  const versionBase = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/';
   return { ...front(sprites), other: {
     'official-artwork': front(sprites.other?.['official-artwork']),
+    champions: artworkId ? { front_default: `${versionBase}generation-ix/champions/${artworkId}.png`, front_shiny: `${versionBase}generation-ix/champions/shiny/${artworkId}.png` } : null,
+    scarletViolet: artworkId ? { front_default: `${versionBase}generation-ix/scarlet-violet/${artworkId}.png` } : null,
     home: front(sprites.other?.home),
+    animatedPixel: front(sprites.versions?.['generation-v']?.['black-white']?.animated) || (artworkId ? { front_default: `${versionBase}generation-v/black-white/animated/${artworkId}.gif`, front_shiny: `${versionBase}generation-v/black-white/animated/shiny/${artworkId}.gif` } : null),
     showdown: front(sprites.other?.showdown),
   } };
 }
@@ -41,18 +46,184 @@ function getPokemonArtwork(sprites, preferences) {
   const choices = {
     hd,
     pixel,
-    home: sprites.other?.home?.[field],
+    champions: sprites.other?.scarletViolet?.[field] || sprites.other?.champions?.[field],
+    animatedPixel: sprites.other?.animatedPixel?.[field],
     animated: sprites.other?.showdown?.[field],
   };
   const selected = choices[preferences.artwork];
   const fallback = hd || official?.front_default || pixel || sprites.front_default;
-  const source = selected || fallback;
-  return { source, fallback,
-    animated: Boolean(selected && preferences.artwork === 'animated'),
-    pixel: Boolean(source && (source === pixel || source === sprites.front_default)),
+  // API sprite objects can exist with null URLs; choose still pixels before HD
+  // both when animation is absent and when its URL fails to load.
+  const source = selected || (preferences.artwork === 'animatedPixel' ? pixel || sprites.front_default || fallback : fallback);
+  const fallbackSources = preferences.artwork === 'champions'
+    ? [sprites.other?.scarletViolet?.[field], sprites.other?.champions?.[field], sprites.other?.home?.[field], hd, official?.front_default]
+    : preferences.artwork === 'animatedPixel' ? [pixel, sprites.front_default, hd, official?.front_default] : [fallback];
+  const fallbacks = [...new Set(fallbackSources.filter(candidate => candidate && candidate !== source))]
+    .map(candidate => ({ source: candidate, pixel: candidate === pixel || candidate === sprites.front_default }));
+  return { source, fallback, fallbacks,
+    animated: Boolean(selected && ['animated', 'animatedPixel'].includes(preferences.artwork)),
+    pixel: Boolean(source && (source === pixel || source === sprites.front_default || (selected && preferences.artwork === 'animatedPixel'))),
     sprite: pixel || sprites.front_default };
 }
-async function createCardThumbnail(source) {
+function installArtworkFallbacks(image, fallbacks, trimSpace, release = () => {}) {
+  image.style.removeProperty('object-view-box');
+  const remaining = [...fallbacks];
+  image.onerror = () => {
+    const fallback = remaining.shift();
+    if (!fallback) return;
+    release();
+    image.style.removeProperty('object-view-box');
+    image.classList.toggle("pixel-artwork", fallback.pixel);
+    image.src = fallback.source;
+    if (trimSpace || fallback.pixel) cropPixelArtwork(fallback.source).then(cropped => {
+      if (image.getAttribute("src") === fallback.source) image.src = cropped;
+    });
+  };
+}
+// Retain only common bounds, never decoded animation frames or generated GIFs.
+const animatedBoundsCache = new Map();
+let animationScanQueue = Promise.resolve();
+function animatedArtworkBounds(source) {
+  if (!globalThis.ImageDecoder || !globalThis.CSS?.supports('object-view-box', 'inset(0px)')) return Promise.resolve(null);
+  if (animatedBoundsCache.has(source)) return animatedBoundsCache.get(source);
+  const request = animationScanQueue.then(async () => {
+    let decoder;
+    try {
+      const response = await fetch(source);
+      if (!response.ok) return null;
+      decoder = new ImageDecoder({data: await response.arrayBuffer(), type: 'image/gif', preferAnimation: true});
+      await decoder.tracks.ready;
+      await decoder.completed;
+      const count = decoder.tracks.selectedTrack.frameCount;
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d', {willReadFrequently:true});
+      let left = Infinity, top = Infinity, right = -1, bottom = -1;
+      for (let index = 0; index < count; index++) {
+        const {image} = await decoder.decode({frameIndex:index});
+        try {
+          canvas.width = image.displayWidth;
+          canvas.height = image.displayHeight;
+          context.drawImage(image, 0, 0);
+          const bounds = pixelArtworkBounds(context.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+          if (bounds) {
+            left = Math.min(left, bounds.x); top = Math.min(top, bounds.y);
+            right = Math.max(right, bounds.x + bounds.width); bottom = Math.max(bottom, bounds.y + bounds.height);
+          }
+        } finally { image.close(); }
+      }
+      if (right < 0) return null;
+      // Square framing and two source pixels of breathing room, like still sprites.
+      const size = Math.max(right - left, bottom - top) + 4;
+      const x = Math.floor((left + right - size) / 2);
+      const y = Math.floor((top + bottom - size) / 2);
+      return `inset(${y}px ${canvas.width - x - size}px ${canvas.height - y - size}px ${x}px)`;
+    } catch { return null; }
+    finally { decoder?.close(); }
+  });
+  animationScanQueue = request.then(() => {});
+  animatedBoundsCache.set(source, request);
+  while (animatedBoundsCache.size > 100) animatedBoundsCache.delete(animatedBoundsCache.keys().next().value);
+  return request;
+}
+async function cropAnimatedArtwork(image, source) {
+  const crop = await animatedArtworkBounds(source);
+  if (crop && image.getAttribute('src') === source && image.dataset.artworkSource === source) image.style.setProperty('object-view-box', crop);
+}
+// Generic HD framing: measure the visible artwork, without species-specific zooms.
+// Cache only the crop coordinates; the browser continues displaying the source PNG.
+const hdArtworkBoundsCache = new Map();
+function hdArtworkBounds(source) {
+  if (!source || !globalThis.CSS?.supports('object-view-box', 'inset(0px)')) return Promise.resolve(null);
+  if (hdArtworkBoundsCache.has(source)) return hdArtworkBoundsCache.get(source);
+  const request = new Promise(resolve => {
+    const artwork = new Image();
+    artwork.crossOrigin = 'anonymous';
+    artwork.onerror = () => resolve(null);
+    artwork.onload = () => {
+      const canvas = document.createElement('canvas');
+      try {
+        canvas.width = artwork.naturalWidth;
+        canvas.height = artwork.naturalHeight;
+        const context = canvas.getContext('2d', {willReadFrequently:true});
+        context.drawImage(artwork, 0, 0);
+        const bounds = pixelArtworkBounds(context.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+        if (!bounds) { resolve(null); return; }
+        const size = Math.max(bounds.width, bounds.height);
+        const x = Math.floor(bounds.x + (bounds.width - size) / 2);
+        const y = Math.floor(bounds.y + (bounds.height - size) / 2);
+        resolve(`inset(${y}px ${canvas.width - x - size}px ${canvas.height - y - size}px ${x}px)`);
+      } catch { resolve(null); }
+      finally { canvas.width = canvas.height = 0; }
+    };
+    artwork.src = source;
+  });
+  hdArtworkBoundsCache.set(source, request);
+  while (hdArtworkBoundsCache.size > 100) hdArtworkBoundsCache.delete(hdArtworkBoundsCache.keys().next().value);
+  return request;
+}
+async function cropHdArtwork(image, source) {
+  const crop = await hdArtworkBounds(source);
+  if (crop && image.getAttribute('src') === source && image.dataset.artworkSource === source) image.style.setProperty('object-view-box', crop);
+}
+// Prepare framing offscreen; keep the current artwork until the replacement is ready.
+async function swapPreparedArtwork(image, artwork, preferences, thumbnail = false) {
+  const version = (image.artworkSwapVersion || 0) + 1;
+  image.artworkSwapVersion = version;
+  const candidates = [{source:artwork.source, pixel:artwork.pixel, animated:artwork.animated}, ...artwork.fallbacks];
+  for (const candidate of candidates) {
+    if (!candidate.source) continue;
+    let source = candidate.source, crop = null, objectUrl = null;
+    try {
+      if (candidate.animated) crop = await animatedArtworkBounds(source);
+      else if (candidate.pixel || preferences.artwork === 'champions') source = await cropPixelArtwork(source);
+      else if (preferences.artwork === 'hd') {
+        if (thumbnail) {
+          const result = await createCardThumbnail(source, true);
+          if (result instanceof Blob) source = objectUrl = URL.createObjectURL(result);
+        } else crop = await hdArtworkBounds(source);
+      }
+      const probe = new Image();
+      await new Promise((resolve, reject) => {
+        probe.onload = resolve;
+        probe.onerror = reject;
+        probe.src = source;
+      });
+      await probe.decode().catch(() => {});
+      if (image.artworkSwapVersion !== version) {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        return;
+      }
+      const previousUrl = image.preparedObjectUrl;
+      image.onerror = null;
+      image.classList.toggle('pixel-artwork', !!candidate.pixel);
+      if (crop) image.style.setProperty('object-view-box', crop);
+      else image.style.removeProperty('object-view-box');
+      image.src = source;
+      image.dataset.artworkSource = candidate.source;
+      image.hidden = false;
+      image.preparedObjectUrl = objectUrl;
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+      return true;
+    } catch {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      if (image.artworkSwapVersion !== version) return;
+    }
+  }
+  if (image.artworkSwapVersion === version && !image.getAttribute('src')) image.hidden = true;
+}
+async function resolveModernArtwork(source, fallbacks) {
+  for (const candidate of [source, ...fallbacks.map(entry => entry.source)]) {
+    const available = await new Promise(resolve => {
+      const probe = new Image();
+      probe.onload = () => resolve(true);
+      probe.onerror = () => resolve(false);
+      probe.src = candidate;
+    });
+    if (available) return cropPixelArtwork(candidate);
+  }
+  return source;
+}
+async function createCardThumbnail(source, trimSpace = false) {
   // Decode HD artwork temporarily, then keep only a thumbnail in the card DOM.
   // 224px supports the 112px desktop image at double pixel density.
   if (!source || typeof createImageBitmap !== "function") return source;
@@ -62,14 +233,22 @@ async function createCardThumbnail(source) {
     const response = await fetch(source);
     if (!response.ok) return source;
     bitmap = await createImageBitmap(await response.blob());
-    const scale = Math.min(1, 224 / Math.max(bitmap.width, bitmap.height));
     canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
-    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    let bounds = { x: 0, y: 0, width: bitmap.width, height: bitmap.height };
+    if (trimSpace) {
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const scan = canvas.getContext("2d", { willReadFrequently: true });
+      scan.drawImage(bitmap, 0, 0);
+      bounds = pixelArtworkBounds(scan.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height) || bounds;
+    }
+    const scale = Math.min(1, 224 / Math.max(bounds.width, bounds.height));
+    canvas.width = Math.max(1, Math.round(bounds.width * scale));
+    canvas.height = Math.max(1, Math.round(bounds.height * scale));
     const context = canvas.getContext("2d");
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, bounds.x, bounds.y, bounds.width, bounds.height, 0, 0, canvas.width, canvas.height);
     bitmap.close();
     bitmap = null;
     // Encode asynchronously and avoid retaining a base64 copy in the JS heap.
