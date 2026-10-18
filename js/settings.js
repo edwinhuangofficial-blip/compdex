@@ -27,7 +27,7 @@
   const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
   let syncCardAppearance = () => {};
   function logoUrl() {
-    if (preferences.accent === defaults.accent) return 'favicon.svg';
+    if (preferences.accent === defaults.accent) return new URL('favicon.svg', document.baseURI).href;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0f172a"/><circle cx="256" cy="256" r="172" fill="#f8fafc" stroke="#020617" stroke-width="22"/><path d="M84 256a172 172 0 0 1 344 0H84Z" fill="${preferences.accent}"/><rect x="84" y="244" width="344" height="24" fill="#020617"/><circle cx="256" cy="256" r="58" fill="#f8fafc" stroke="#020617" stroke-width="18"/><circle cx="256" cy="256" r="22" fill="${preferences.accent}"/></svg>`;
     return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
