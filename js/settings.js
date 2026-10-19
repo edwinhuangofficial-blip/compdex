@@ -1,6 +1,6 @@
 (() => {
   const storageKey = 'compdex.settings.v1';
-  const defaults = Object.freeze({theme:'light',artwork:'animatedPixel',defaultArtwork:'animatedPixel',shiny:false,includeEvolutions:true,defaultRelated:true,includeAltForms:true,defaultSort:'id',sortDirection:'asc',pageSize:52,animations:'full',accent:'#66adff'});
+  const defaults = Object.freeze({theme:'light',artwork:'animatedPixel',defaultArtwork:'animatedPixel',shiny:false,includeEvolutions:true,defaultRelated:true,includeAltForms:true,defaultSort:'id',sortDirection:'asc',pageSize:50,animations:'full',accent:'#66adff'});
   const artworkStyles = ['hd','pixel','champions','animated','animatedPixel'];
   function validate(value) {
     const v = value && typeof value === 'object' ? value : {};

@@ -542,21 +542,16 @@ function createFilterDropdown(select, isType = false) {
   function open() {
     filterDropdowns.forEach(dropdown => dropdown.close());
     wrapper.classList.add("open");
+    // Sidebar menus expand in flow inside the scrollable panel, avoiding clipping.
+    const inSidebar = filtersPanel.contains(trigger);
     const bounds = trigger.getBoundingClientRect();
-    const panelBounds = filtersPanel.contains(trigger)
-      ? filtersPanel.getBoundingClientRect() : null;
-    const above = bounds.top - Math.max(header.getBoundingClientRect().height, panelBounds?.top || 0) - 12;
-    const below = Math.min(window.innerHeight, panelBounds?.bottom ?? window.innerHeight) - bounds.bottom - 12;
-    const opensUp = !isType && below < menu.scrollHeight && above > below;
+    const above = bounds.top - header.getBoundingClientRect().height - 12;
+    const below = window.innerHeight - bounds.bottom - 12;
+    const opensUp = !inSidebar && below < menu.scrollHeight && above > below;
     wrapper.classList.toggle("opens-up", opensUp);
-    menu.style.maxHeight = isType ? 'none' : `${Math.max(100, opensUp ? above : below)}px`;
-    if (panelBounds) {
-      menu.style.maxWidth = `${Math.max(100, panelBounds.width - 24)}px`;
-      menu.style.left = '0px';
-      const menuBounds = menu.getBoundingClientRect();
-      const left = Math.max(panelBounds.left + 12, Math.min(menuBounds.left, panelBounds.right - 12 - menuBounds.width));
-      menu.style.left = `${left - bounds.left}px`;
-    }
+    menu.style.maxHeight = inSidebar
+      ? Math.min(320, window.innerHeight * .45) + 'px'
+      : Math.max(48, opensUp ? above : below) + 'px';
     trigger.setAttribute("aria-expanded", "true");
     menu.inert = false;
     (buttons.find((button,index) => !button.hidden && !button.disabled && (selections ? selections.has(options[index].value) : options[index].value === select.value)) || buttons.find(button => !button.hidden && !button.disabled))?.focus();
@@ -566,7 +561,7 @@ function createFilterDropdown(select, isType = false) {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); open(); }
   });
   wrapper.addEventListener("keydown", event => {
-    if (event.key === "Escape") { event.preventDefault(); close(); trigger.focus(); }
+    if (event.key === "Escape" && wrapper.classList.contains("open")) { event.preventDefault(); event.stopPropagation(); close(); trigger.focus(); }
     const visibleButtons = buttons.filter(button => !button.hidden && !button.disabled);
     const index = visibleButtons.indexOf(document.activeElement);
     if (index >= 0 && ["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
@@ -593,43 +588,59 @@ createFilterDropdown(gameFilter);
 createFilterDropdown(gameVersionFilter);
 createFilterDropdown(document.getElementById('index-artwork'));
 const filtersToggle = document.getElementById('filters-toggle');
-const filtersLayout = document.querySelector('.homepage-layout');
 const filtersPanel = document.getElementById('homepage-filters');
-const mobileFiltersMedia = matchMedia('(max-width: 760px)');
-const filtersContent = document.getElementById('filters-content');
-let filtersAnimation;
-function syncFiltersPanel(currentHeight = filtersContent.getBoundingClientRect().height, animate = true) {
-  const open = filtersLayout.classList.contains('filters-open');
-  filtersToggle.setAttribute('aria-expanded', String(open));
-  filtersContent.inert = !open;
-  filtersAnimation?.cancel();
-  filtersContent.style.height = open ? 'auto' : '0px';
-  // Measure the actual layout; scrollHeight also includes positioned dropdown menus.
-  const targetHeight = open ? filtersContent.getBoundingClientRect().height : 0;
-  if (animate && !['off', 'reduced'].includes(document.documentElement.dataset.animations)) {
-    filtersContent.style.overflow = 'hidden';
-    filtersAnimation = filtersContent.animate([{height: currentHeight + 'px'}, {height: targetHeight + 'px'}], {duration: 220, easing: 'cubic-bezier(.22, 1, .36, 1)'});
-    filtersAnimation.onfinish = () => { filtersContent.style.overflow = open ? 'visible' : 'hidden'; };
-  } else filtersContent.style.overflow = open ? 'visible' : 'hidden';
-}
+const filtersDialog = document.getElementById('filters-dialog');
+const closeFilters = document.getElementById('close-filters');
+const mobileFiltersMedia = matchMedia('(max-width: 64rem)');
 function closeFiltersPanel() {
-  const currentHeight = filtersContent.getBoundingClientRect().height;
-  filtersLayout.classList.remove('filters-open');
+  if (!mobileFiltersMedia.matches) return;
   filterDropdowns.forEach(dropdown => dropdown.close());
-  syncFiltersPanel(currentHeight);
+  filtersDialog.close();
+  filtersToggle.setAttribute('aria-expanded', 'false');
+  filtersToggle.focus();
 }
 filtersToggle.addEventListener('click', () => {
-  if (filtersLayout.classList.contains('filters-open')) closeFiltersPanel();
-  else { const currentHeight = filtersContent.getBoundingClientRect().height; filtersLayout.classList.add('filters-open'); syncFiltersPanel(currentHeight); }
+  if (filtersDialog.open) return closeFiltersPanel();
+  filtersDialog.showModal();
+  filtersToggle.setAttribute('aria-expanded', 'true');
+  closeFilters.focus();
 });
-filtersPanel.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && !event.defaultPrevented) {
-    closeFiltersPanel();
-    filtersToggle.focus();
+closeFilters.addEventListener('click', closeFiltersPanel);
+filtersDialog.addEventListener('keydown', event => {
+  if (event.key !== 'Tab' || !mobileFiltersMedia.matches) return;
+  const controls = [...filtersDialog.querySelectorAll('button, input, select, [tabindex]')]
+    .filter(control => control.tabIndex >= 0 && !control.disabled && !control.closest('[inert]') && control.getClientRects().length);
+  const first = controls[0];
+  const last = controls.at(-1);
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault(); last?.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault(); first?.focus();
   }
 });
-filtersLayout.classList.toggle('filters-open', !mobileFiltersMedia.matches);
+filtersDialog.addEventListener('cancel', event => {
+  event.preventDefault();
+  closeFiltersPanel();
+});
+filtersDialog.addEventListener('click', event => {
+  // Native dialog backdrop clicks target the dialog, so check its actual bounds.
+  const bounds = filtersDialog.getBoundingClientRect();
+  if (event.target === filtersDialog && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom)) closeFiltersPanel();
+});
+function syncFiltersPanel() {
+  const hadFocus = filtersDialog.contains(document.activeElement);
+  filterDropdowns.forEach(dropdown => dropdown.close());
+  filtersDialog.close();
+  filtersToggle.setAttribute('aria-expanded', 'false');
+  if (!mobileFiltersMedia.matches) {
+    // A persistent sidebar must not steal focus when the page loads.
+    filtersDialog.setAttribute('open', '');
+    if (hadFocus) document.getElementById('name-filter').focus({preventScroll: true});
+  } else if (hadFocus) filtersToggle.focus();
+}
+mobileFiltersMedia.addEventListener('change', syncFiltersPanel);
 syncFiltersPanel();
+
 document.addEventListener('DOMContentLoaded', () => {
   filterDropdowns.forEach(dropdown => dropdown.sync());
 });

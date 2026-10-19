@@ -92,12 +92,12 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 
 .sprite-stats{
   display: grid;
-  grid-template-columns: 290px 560px;
+
   align-items: stretch;
   gap: 20px;
 }
-/* Keep artwork (290px), stats (560px), and matchups (870px) independent of evolution height. */
-.info-layout { display: grid; grid-template-columns: 870px minmax(0, 1fr); gap: 28px; align-items: start; }
+/* Keep artwork, stats, and matchups independent of evolution height. */
+.info-layout { display: grid;  gap: 28px; align-items: start; }
 .info-primary { min-width: 0; }
 #pokeinfo .sprite-stats { gap: 20px; }
 
@@ -134,9 +134,6 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 #info-favorite svg { display: block; width: 24px; height: 24px; transform: translateY(1px); fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linejoin: round; }
 #info-favorite[aria-pressed="true"] svg { fill: #f4c542; stroke: #c49316; }
 #info-favorite:hover { background: var(--accent-subtle); }
-@media (max-width: 1250px) { .info-layout { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 900px) and (min-width: 761px) { .sprite-stats { grid-template-columns: 290px minmax(0, 1fr); } }
-@media (max-width: 760px) { .sprite-stats { grid-template-columns: minmax(0, 1fr); align-items: stretch; } .sprites { flex-basis: auto; width: 100%; } .stats { min-width: 0; } }
 
 .stat-row {
   display: flex;
@@ -298,8 +295,6 @@ html[data-animations="reduced"] .evolution-card:hover { transform: none; }
 @keyframes info-stat-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 html[data-animations="off"] #pokeinfo .stat-bar { animation: none; }
 @media (prefers-reduced-motion: reduce) { #pokeinfo .stat-bar { animation: none; } }
-@media (min-width: 761px) { #pokeinfo .sprite-stats { flex-wrap: nowrap; } }
-@media (max-width: 760px) { .stats { max-width: none; } }
 
 #searchbarid{
 width: 300px;
@@ -368,7 +363,6 @@ position: relative;
   width: 67px;
   box-sizing: border-box
 }
-
 
 .type-normal   { background-color: #a8a878; }
 .type-fire     { background-color: #f08030; }
@@ -485,5 +479,3 @@ position: relative;
 #clear-search.visible {
   display: block;
 }
-
-@media (min-width: 1201px) { #pokeinfo .matchup-badges .type-badge, #pokeinfo .matchup-badges .type-badge-multipliers { padding-left: 12.5px; padding-right: 12.5px; } }
