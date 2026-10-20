@@ -1,9 +1,11 @@
 <!doctype html>
 <html>
   <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="css/pokemoninfo.css?v=alternate-forms-4" />
+    <link rel="stylesheet" href="css/pokemoninfo.css?v=clickable-types-6" />
     <link rel="stylesheet" href="css/shared.css?v=welcome-preview-1" />
     <link rel="stylesheet" href="css/responsive.css?v=horizontal-evolution-1" />
+    <link rel="stylesheet" href="css/navigation.css?v=4" />
+    <script src="js/navigation.js?v=2" defer></script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,7 +16,7 @@
       rel="stylesheet"
     />
 <script src="js/settings.js?v=welcome-preview-1"></script>
-    <script src="js/fetchapi.js?v=compact-header-39"></script>
+    <script src="js/fetchapi.js?v=modern-models-37"></script>
     <script src="js/forms.js?v=alternate-forms-3"></script>
     <script src="js/evolution.js?v=alternate-forms-3"></script>
     <title>Pokemon Info</title>
@@ -258,7 +260,7 @@
             <div class="info-artwork-stage">
             <img id="pokemon-main-artwork" alt="${data.name}" />
             </div>
-            <div class="info-artwork-types" aria-label="Pokémon types">${types.map(type => `<span class="type-badge type-${type}">${type}</span>`).join("")}</div>
+            <div class="info-artwork-types" aria-label="Pokémon types">${types.map(type => `<a class="type-badge type-${type}" href="typeinfo.html?type=${type}">${type}</a>`).join("")}</div>
           </div>
             <div class="stats">
               <div class="stats-header"><h2 class="stats-heading">Base stats</h2><span class="stats-pokemon-name">${displayName} · #${data.id}</span></div>
@@ -277,11 +279,11 @@
               </div>
             </div>
         <section class="info-matchups" aria-label="Type matchups">
-          <div class="matchups-header"><h2>Type matchups</h2></div>
-          ${strongAgainstList.length > 0 ? `<div class="matchup-row"><h3>STAB <small>1.5x</small></h3><div class="matchup-badges">${strongAgainstList.map(t => `<span class="type-badge type-${t}">${t}</span>`).join("")}</div></div>` : ""}
-          ${weaknessesList.length > 0 ? `<div class="matchup-row"><h3>Weaknesses</h3><div class="matchup-badges">${weaknessesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}×</span>`).join("")}</div></div>` : ""}
-          ${resistancesList.length > 0 ? `<div class="matchup-row"><h3>Resistances</h3><div class="matchup-badges">${resistancesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} ${typeMultipliers[t]}×</span>`).join("")}</div></div>` : ""}
-          ${immunitiesList.length > 0 ? `<div class="matchup-row"><h3>Immunities</h3><div class="matchup-badges">${immunitiesList.map(t => `<span class="type-badge-multipliers type-${t}">${t} 0×</span>`).join("")}${abilities.includes("levitate") ? '<small class="matchup-note">Ground immunity requires Levitate.</small>' : ""}</div></div>` : ""}
+          <div class="matchups-header"><h2>Type matchups</h2><small>(Type Badges are clickable)</small></div>
+          ${strongAgainstList.length > 0 ? `<div class="matchup-row"><h3>STAB <small>1.5x</small></h3><div class="matchup-badges">${strongAgainstList.map(t => `<a class="type-badge type-${t}" href="typeinfo.html?type=${t}">${t}</a>`).join("")}</div></div>` : ""}
+          ${weaknessesList.length > 0 ? `<div class="matchup-row"><h3>Weaknesses</h3><div class="matchup-badges">${weaknessesList.map(t => `<a class="type-badge-multipliers type-${t}" href="typeinfo.html?type=${t}">${t} ${typeMultipliers[t]}×</a>`).join("")}</div></div>` : ""}
+          ${resistancesList.length > 0 ? `<div class="matchup-row"><h3>Resistances</h3><div class="matchup-badges">${resistancesList.map(t => `<a class="type-badge-multipliers type-${t}" href="typeinfo.html?type=${t}">${t} ${typeMultipliers[t]}×</a>`).join("")}</div></div>` : ""}
+          ${immunitiesList.length > 0 ? `<div class="matchup-row"><h3>Immunities</h3><div class="matchup-badges">${immunitiesList.map(t => `<a class="type-badge-multipliers type-${t}" href="typeinfo.html?type=${t}">${t} 0×</a>`).join("")}${abilities.includes("levitate") ? '<small class="matchup-note">Ground immunity requires Levitate.</small>' : ""}</div></div>` : ""}
         </section>
         </div><section class="info-evolution" aria-label="Evolution line"><h2>Evolution line</h2><div id="evolution-content" aria-live="polite" aria-busy="true">Loading evolution line…</div></section></div>
         `;

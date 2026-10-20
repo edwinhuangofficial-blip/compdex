@@ -542,19 +542,22 @@ function createFilterDropdown(select, isType = false) {
   function open() {
     filterDropdowns.forEach(dropdown => dropdown.close());
     wrapper.classList.add("open");
-    // Sidebar menus expand in flow inside the scrollable panel, avoiding clipping.
     const inSidebar = filtersPanel.contains(trigger);
     const bounds = trigger.getBoundingClientRect();
-    const above = bounds.top - header.getBoundingClientRect().height - 12;
+    const above = bounds.top - (inSidebar && filtersDialog.open ? filtersDialog.getBoundingClientRect().top : header.getBoundingClientRect().bottom) - 12;
     const below = window.innerHeight - bounds.bottom - 12;
-    const opensUp = !inSidebar && below < menu.scrollHeight && above > below;
+    const opensUp = below < Math.min(320, menu.scrollHeight) && above > below;
     wrapper.classList.toggle("opens-up", opensUp);
-    menu.style.maxHeight = inSidebar
-      ? Math.min(320, window.innerHeight * .45) + 'px'
-      : Math.max(48, opensUp ? above : below) + 'px';
+    menu.style.maxHeight = Math.max(48, Math.min(320, opensUp ? above : below)) + 'px';
+    if (inSidebar) {
+      menu.style.width = `${Math.max(bounds.width, Math.min(290, menu.scrollWidth))}px`;
+      menu.style.left = `${Math.max(12, Math.min(bounds.left, innerWidth - menu.offsetWidth - 12))}px`;
+      menu.style.top = `${opensUp ? bounds.top - menu.offsetHeight - 8 : bounds.bottom + 8}px`;
+      menu.style.bottom = 'auto';
+    }
     trigger.setAttribute("aria-expanded", "true");
     menu.inert = false;
-    (buttons.find((button,index) => !button.hidden && !button.disabled && (selections ? selections.has(options[index].value) : options[index].value === select.value)) || buttons.find(button => !button.hidden && !button.disabled))?.focus();
+    (buttons.find((button,index) => !button.hidden && !button.disabled && (selections ? selections.has(options[index].value) : options[index].value === select.value)) || buttons.find(button => !button.hidden && !button.disabled))?.focus({preventScroll:true});
   }
   trigger.addEventListener("click", () => wrapper.classList.contains("open") ? close() : open());
   trigger.addEventListener("keydown", event => {
@@ -590,6 +593,10 @@ createFilterDropdown(document.getElementById('index-artwork'));
 const filtersToggle = document.getElementById('filters-toggle');
 const filtersPanel = document.getElementById('homepage-filters');
 const filtersDialog = document.getElementById('filters-dialog');
+filtersDialog.addEventListener('scroll', event => {
+  if (event.target === filtersDialog) filterDropdowns.forEach(dropdown => dropdown.close());
+}, true);
+window.addEventListener('resize', () => filterDropdowns.forEach(dropdown => dropdown.close()));
 const closeFilters = document.getElementById('close-filters');
 const mobileFiltersMedia = matchMedia('(max-width: 64rem)');
 function closeFiltersPanel() {

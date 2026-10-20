@@ -1,0 +1,39 @@
+.type-info-page { min-width: 0; padding: 16px var(--page-gutter) 40px; }
+.type-back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--accent); font-size: 25.74px; font-weight: 700; text-decoration: none; }
+.type-back-link svg { width: 1em; height: 1em; flex-shrink: 0; stroke-width: 4; }
+.type-back-link:hover { text-decoration: underline; }
+.type-info-content { max-width: 1270px; margin: 0 auto; }
+.type-selector-heading { display: flex; justify-content: center; margin: 8px 0 28px; }
+.type-selector { position: relative; z-index: 40; }
+#type-selector-trigger { display: flex; align-items: center; gap: 24px; margin: 0; padding: 10px 22px; border: 0; border-radius: 8px; font: inherit; font-size: 36px; font-weight: 700; cursor: pointer; }
+#type-selector-trigger::after { content: '⌄'; font-size: 24px; transition: transform 220ms ease; }
+.type-selector.open #type-selector-trigger::after { transform: rotate(180deg); }
+#type-selector-menu { position: absolute; top: calc(100% + 10px); left: 50%; width: min(390px, calc(100vw - 32px)); box-sizing: border-box; padding: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; overflow-y: auto; border: 2px solid var(--accent); border-radius: 10px; background: var(--surface); box-shadow: 0 8px 20px rgb(var(--accent-rgb) / 18%); opacity: 0; visibility: hidden; transform: translate(-50%, -6px); transition: opacity 220ms ease, transform 220ms cubic-bezier(.22, 1, .36, 1), visibility 220ms; }
+.type-selector.open #type-selector-menu { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.type-choice { position: relative; padding: 6px; border: 0; border-radius: 6px; background: transparent; color: var(--text); font: inherit; cursor: pointer; }
+.type-choice:hover, .type-choice:focus-visible, .type-choice[aria-checked="true"] { background: var(--accent-subtle); }
+.type-choice .type-badge { margin: 0; padding: 5px 8px; font-size: 18px; }
+.type-choice[aria-checked="true"]::after { content: '✓'; position: absolute; top: 0; right: 0; color: var(--accent); font-weight: 700; }
+.type-info-matchups { max-width: 870px; margin: 0 auto 34px; padding: 16px 20px; box-sizing: border-box; border: 1px solid var(--accent); border-radius: 10px; background: var(--surface); }
+.type-matchups-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
+.type-matchups-heading h2 { margin: 0; font-size: 24px; }
+.type-matchups-heading small { font-size: 14px; font-weight: 500; }
+.type-matchup-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid color-mix(in srgb, var(--text) 12%, var(--surface)); }
+.type-matchup-row h3 { margin: 0; font-size: 17px; }
+.type-matchup-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.type-matchup-badges .type-badge { margin: 0; padding: 6.25px 11.25px; border-radius: 8.75px; font-size: 18.75px; text-decoration: none; }
+.type-matchup-badges .type-badge:hover { filter: brightness(1.08); }
+.type-matchup-empty { font-size: 17px; }
+#type-pokemon-title { display: flex; align-items: center; gap: 8px; margin: 0 0 20px; font-size: 28px; }
+#type-pokemon-title .type-badge { margin: 0; padding: 5px 10px; font-size: 28px; }
+.type-info-page #poke-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.type-info-page .index-toolbar { top: calc(var(--type-header-height, 101px) + 12px); }
+.type-info-page .index-toolbar::before { top: -13px; }
+.type-info-page .pokecard-link { min-height: 234px; }
+.type-load-error { padding: 16px; grid-column: 1 / -1; font-size: 18px; }
+.type-load-error button { font: inherit; border: 1px solid var(--accent); border-radius: 6px; padding: 6px 12px; color: var(--text); background: var(--surface); cursor: pointer; }
+@media (max-width: 1100px) { .type-info-page #poke-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .type-info-page #poke-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .type-back-link { font-size: 15px; } .type-info-page #poke-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .type-info-page .pokecard-link { min-height: 220px; } .type-selector-heading { margin-top: 12px; } }
+@media (max-width: 480px) { .type-info-matchups { padding: 14px; } .type-matchup-row { grid-template-columns: 100px minmax(0, 1fr); gap: 8px; } .type-choice { padding: 6px 2px; } .type-choice .type-badge { font-size: 16px; } }
+@media (max-height: 600px) { .type-info-page .index-toolbar { position: relative; top: auto; } }

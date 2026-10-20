@@ -118,6 +118,7 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 .info-artwork-controls input { accent-color: var(--accent); }
 .info-artwork-stage { height: 260px; display: grid; place-items: center; }
 .info-artwork-types { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 24px; padding: 8px 6px 20px; }
+.info-artwork-types a.type-badge, .matchup-badges a.type-badge, .matchup-badges a.type-badge-multipliers { text-decoration: none; }
 #pokeinfo .info-artwork-types .type-badge { margin: 0; font-size: 20px; padding: 6px 14px; transform: translateY(10px) scale(1.2); }
 #pokeinfo #pokemon-main-artwork { width: 230px; height: 230px; max-width: 100%; object-fit: contain; }
 .info-artwork-dropdown { position: relative; text-transform: none; }
@@ -301,7 +302,9 @@ html[data-animations="reduced"] .evolution-card:hover { transform: none; }
   .evolution-mega-arrow { height: 28px; align-self: center; }
 }
 .info-matchups { max-width: 870px; box-sizing: border-box; margin-top: 16px; padding: 16px 20px; border: 1px solid var(--accent); border-radius: 10px; background: var(--surface); }
-.matchups-header h2 { margin: 0 0 12px; font-size: 24px; }
+.matchups-header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 12px; }
+.matchups-header h2 { margin: 0; font-size: 24px; }
+.matchups-header small { font-size: 14px; font-weight: 500; }
 .matchup-row { display: grid; grid-template-columns: 140px minmax(0, 1fr); align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid color-mix(in srgb, var(--text) 12%, var(--surface)); }
 .matchup-row h3 { margin: 0; font-size: 17px; }
 .matchup-row h3 small { font-size: 15px; font-weight: 500; color: var(--text); margin-left: 6px; }

@@ -27,12 +27,15 @@ const pokemonCache = {};
 // Only these front-facing sprites are used by the index and info page.
 function compactPokemonSprites(sprites) {
   const front = value => value && ({ front_default: value.front_default, front_shiny: value.front_shiny });
-  const artworkId = (sprites.other?.['official-artwork']?.front_default || sprites.front_default || '').match(/\/(\d+)\.png$/)?.[1];
+  const artworkId = (sprites.other?.['official-artwork']?.front_default || sprites.front_default || '').match(/\/(\d+)\.(?:png|webp)(?:[?#].*)?$/)?.[1];
   const versionBase = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/';
   return { ...front(sprites), other: {
     'official-artwork': front(sprites.other?.['official-artwork']),
-    champions: artworkId ? { front_default: `${versionBase}generation-ix/champions/${artworkId}.png`, front_shiny: `${versionBase}generation-ix/champions/shiny/${artworkId}.png` } : null,
-    scarletViolet: artworkId ? { front_default: `${versionBase}generation-ix/scarlet-violet/${artworkId}.png` } : null,
+    champions: artworkId ? { front_default: `${versionBase}generation-ix/champions/${artworkId}.webp`, front_shiny: `${versionBase}generation-ix/champions/shiny/${artworkId}.webp` } : null,
+    swordShield: artworkId ? { front_default: `${versionBase}generation-viii/sword-shield/${artworkId}.webp`, front_shiny: `${versionBase}generation-viii/sword-shield/shiny/${artworkId}.webp` } : null,
+    scarletViolet: artworkId ? { front_default: `${versionBase}generation-ix/scarlet-violet/${artworkId}.webp`, front_shiny: `${versionBase}generation-ix/scarlet-violet/shiny/${artworkId}.webp` } : null,
+    brilliantDiamondShiningPearl: artworkId ? { front_default: `${versionBase}generation-viii/brilliant-diamond-shining-pearl/${artworkId}.webp`, front_shiny: `${versionBase}generation-viii/brilliant-diamond-shining-pearl/shiny/${artworkId}.webp` } : null,
+    legendsZA: artworkId ? { front_default: `${versionBase}generation-ix/legends-za/${artworkId}.webp`, front_shiny: `${versionBase}generation-ix/legends-za/shiny/${artworkId}.webp` } : null,
     home: front(sprites.other?.home),
     animatedPixel: front(sprites.versions?.['generation-v']?.['black-white']?.animated) || (artworkId ? { front_default: `${versionBase}generation-v/black-white/animated/${artworkId}.gif`, front_shiny: `${versionBase}generation-v/black-white/animated/shiny/${artworkId}.gif` } : null),
     showdown: front(sprites.other?.showdown),
@@ -43,29 +46,32 @@ function getPokemonArtwork(sprites, preferences) {
   const hd = preferences.shiny ? official?.front_shiny : official?.front_default;
   const pixel = preferences.shiny ? sprites.front_shiny : sprites.front_default;
   const field = preferences.shiny ? 'front_shiny' : 'front_default';
+  // Derive the same current model URLs for raw API sprites and cached summaries.
+  const models = compactPokemonSprites(sprites).other;
+  const modernSources = [models.champions?.[field], models.scarletViolet?.[field], models.swordShield?.[field], models.brilliantDiamondShiningPearl?.[field], models.legendsZA?.[field], models.home?.[field]].filter(Boolean);
+  const animatedFallbackSources = [models.champions?.[field], models.swordShield?.[field], models.scarletViolet?.[field], models.home?.[field]].filter(Boolean);
   const choices = {
     hd,
     pixel,
-    champions: sprites.other?.scarletViolet?.[field] || sprites.other?.champions?.[field],
+    champions: modernSources[0],
     animatedPixel: sprites.other?.animatedPixel?.[field],
     animated: sprites.other?.showdown?.[field],
   };
   const selected = choices[preferences.artwork];
-  const modernSources = [sprites.other?.scarletViolet?.[field], sprites.other?.champions?.[field], sprites.other?.home?.[field]].filter(Boolean);
   const fallback = hd || official?.front_default || pixel || sprites.front_default;
   // API sprite objects can exist with null URLs; choose still pixels before HD
   // both when animation is absent and when its URL fails to load.
   const source = selected || (preferences.artwork === 'animatedPixel' ? pixel || sprites.front_default || fallback
-    : preferences.artwork === 'animated' ? modernSources[0] || fallback : fallback);
+    : preferences.artwork === 'animated' ? animatedFallbackSources[0] || fallback : fallback);
   const fallbackSources = preferences.artwork === 'champions'
-    ? [sprites.other?.scarletViolet?.[field], sprites.other?.champions?.[field], sprites.other?.home?.[field], hd, official?.front_default]
-    : preferences.artwork === 'animated' ? [...modernSources, hd, official?.front_default, pixel, sprites.front_default]
+    ? modernSources
+    : preferences.artwork === 'animated' ? [...animatedFallbackSources, hd, official?.front_default, pixel, sprites.front_default]
     : preferences.artwork === 'animatedPixel' ? [pixel, sprites.front_default, hd, official?.front_default] : [fallback];
   const fallbacks = [...new Set(fallbackSources.filter(candidate => candidate && candidate !== source))]
-    .map(candidate => ({ source: candidate, pixel: candidate === pixel || candidate === sprites.front_default, modern: modernSources.includes(candidate) }));
+    .map(candidate => ({ source: candidate, pixel: candidate === pixel || candidate === sprites.front_default, modern: modernSources.includes(candidate) || animatedFallbackSources.includes(candidate) }));
   return { source, fallback, fallbacks,
     animated: Boolean(selected && ['animated', 'animatedPixel'].includes(preferences.artwork)),
-    modern: modernSources.includes(source),
+    modern: modernSources.includes(source) || animatedFallbackSources.includes(source),
     pixel: Boolean(source && (source === pixel || source === sprites.front_default || (selected && preferences.artwork === 'animatedPixel'))),
     sprite: pixel || sprites.front_default };
 }

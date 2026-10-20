@@ -1,0 +1,465 @@
+<!doctype html>
+<html>
+  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/index.css?v=responsive-1" />
+    <link rel="stylesheet" href="css/shared.css?v=welcome-preview-1" />
+    <link rel="stylesheet" href="css/responsive.css?v=card-name-ellipsis-3" />
+    <link rel="stylesheet" href="css/navigation.css?v=4" />
+    <script src="js/navigation.js?v=2" defer></script>
+    <link rel="stylesheet" href="css/typehome.css?v=9" />
+    <script src="js/typehome.js?v=4" defer></script>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+<script src="js/settings.js?v=welcome-preview-1"></script>
+    <script src="js/fetchapi.js?v=modern-models-37"></script>
+    <title>Types — CompDex</title>
+  </head>
+  <body class="readable-text">
+    <div class="homepagebar">
+      <div class="bar-left">
+        <h2 id="homebutton" onclick="window.location.replace('index.html')">
+          <img class="site-logo" src="favicon.svg" alt="" /> CompDex
+        </h2>
+        <h3 class="page-label">Types</h3>
+      </div>
+
+      <div class="bar-mid">
+        <div class="searchbarbut">
+          <div class="search-input-wrap">
+            <input type="search" id="searchbarid" placeholder="Search name or #..." autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none" />
+            <button type="button" id="clear-search" aria-label="Clear search">
+              ×
+            </button>
+          </div>
+          <button id="searchbutton" onclick="pokeSearch()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="10" cy="10" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+          <div id="search-dropdown"></div>
+        </div>
+        <button id="random-pokemon" data-shared-random class="shuffle-button" type="button" aria-label="Go to a random Pokémon" title="Go to a random Pokémon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h3c5 0 7 12 12 12h3M18 15l3 3-3 3M3 18h3c2 0 3.5-2 5-4M13 10c1.5-2 3-4 5-4h3M18 3l3 3-3 3"/></svg></button>
+      </div>
+
+      <div class="bar-right">
+        <button id="share-button" type="button" aria-label="Share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4M8.6 13.5l6.8 4"/></svg><span>Share</span></button>
+        <button id="settings-button" type="button" aria-label="Settings" title="Settings"><svg class="settings-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-.5 3-2 1.2-2.8-1.1-2 3.5 2.3 1.9v2.4l-2.3 1.9 2 3.5 2.8-1.1 2 1.2.5 3h4l.5-3 2-1.2 2.8 1.1 2-3.5-2.3-1.9v-2.4l2.3-1.9-2-3.5-2.8 1.1-2-1.2-.5-3Z"/><circle cx="11" cy="12" r="3"/></svg><span>Settings</span></button><!--make this work later-->
+      </div>
+    </div>
+    <main class="types-page" aria-labelledby="types-title">
+      <h1 id="types-title">Types</h1>
+      <nav class="type-directory" aria-label="Pokémon types">
+        <a class="type-directory-card type-normal" href="typeinfo.html?type=normal"><span class="type-badge type-normal">Normal</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-fire" href="typeinfo.html?type=fire"><span class="type-badge type-fire">Fire</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-water" href="typeinfo.html?type=water"><span class="type-badge type-water">Water</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-electric" href="typeinfo.html?type=electric"><span class="type-badge type-electric">Electric</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-grass" href="typeinfo.html?type=grass"><span class="type-badge type-grass">Grass</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-ice" href="typeinfo.html?type=ice"><span class="type-badge type-ice">Ice</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-fighting" href="typeinfo.html?type=fighting"><span class="type-badge type-fighting">Fighting</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-poison" href="typeinfo.html?type=poison"><span class="type-badge type-poison">Poison</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-ground" href="typeinfo.html?type=ground"><span class="type-badge type-ground">Ground</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-flying" href="typeinfo.html?type=flying"><span class="type-badge type-flying">Flying</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-psychic" href="typeinfo.html?type=psychic"><span class="type-badge type-psychic">Psychic</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-bug" href="typeinfo.html?type=bug"><span class="type-badge type-bug">Bug</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-rock" href="typeinfo.html?type=rock"><span class="type-badge type-rock">Rock</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-ghost" href="typeinfo.html?type=ghost"><span class="type-badge type-ghost">Ghost</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-dragon" href="typeinfo.html?type=dragon"><span class="type-badge type-dragon">Dragon</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-dark" href="typeinfo.html?type=dark"><span class="type-badge type-dark">Dark</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-steel" href="typeinfo.html?type=steel"><span class="type-badge type-steel">Steel</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        <a class="type-directory-card type-fairy" href="typeinfo.html?type=fairy"><span class="type-badge type-fairy">Fairy</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+      </nav>
+      <!-- Modern single-type relations from https://pokeapi.co/api/v2/type/ -->
+      <section class="matchup-chart" aria-labelledby="matchup-title">
+        <h2 id="matchup-title">Type matchup chart (doesn’t account for dual types)</h2>
+        <div class="chart-top-axis" aria-hidden="true">Defending</div>
+        <div class="chart-layout">
+          <div class="chart-left-axis" aria-hidden="true">Attacking</div>
+          <div class="chart-scroll" tabindex="0" role="region" aria-label="Type matchup chart: rows attacking, columns defending. Scroll horizontally for all types.">
+            <table class="matchup-table" aria-label="Single-type damage multipliers: attacking rows and defending columns">
+              <thead><tr><td></td><th scope="col" aria-label="Normal"><span class="type-badge type-normal" title="Normal">NOR</span></th><th scope="col" aria-label="Fire"><span class="type-badge type-fire" title="Fire">FIR</span></th><th scope="col" aria-label="Water"><span class="type-badge type-water" title="Water">WAT</span></th><th scope="col" aria-label="Electric"><span class="type-badge type-electric" title="Electric">ELE</span></th><th scope="col" aria-label="Grass"><span class="type-badge type-grass" title="Grass">GRA</span></th><th scope="col" aria-label="Ice"><span class="type-badge type-ice" title="Ice">ICE</span></th><th scope="col" aria-label="Fighting"><span class="type-badge type-fighting" title="Fighting">FIG</span></th><th scope="col" aria-label="Poison"><span class="type-badge type-poison" title="Poison">POI</span></th><th scope="col" aria-label="Ground"><span class="type-badge type-ground" title="Ground">GRO</span></th><th scope="col" aria-label="Flying"><span class="type-badge type-flying" title="Flying">FLY</span></th><th scope="col" aria-label="Psychic"><span class="type-badge type-psychic" title="Psychic">PSY</span></th><th scope="col" aria-label="Bug"><span class="type-badge type-bug" title="Bug">BUG</span></th><th scope="col" aria-label="Rock"><span class="type-badge type-rock" title="Rock">ROC</span></th><th scope="col" aria-label="Ghost"><span class="type-badge type-ghost" title="Ghost">GHO</span></th><th scope="col" aria-label="Dragon"><span class="type-badge type-dragon" title="Dragon">DRA</span></th><th scope="col" aria-label="Dark"><span class="type-badge type-dark" title="Dark">DAR</span></th><th scope="col" aria-label="Steel"><span class="type-badge type-steel" title="Steel">STE</span></th><th scope="col" aria-label="Fairy"><span class="type-badge type-fairy" title="Fairy">FAI</span></th></tr></thead>
+              <tbody>
+                <tr data-attacking="normal"><th scope="row"><span class="type-badge type-normal">Normal</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Normal attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Normal attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Normal attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Normal attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Normal attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Normal attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Normal attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Normal attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Normal attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Normal attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Normal attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Normal attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="0.5" class="resist" aria-label="Normal attacking Rock: 0.5 times">½</td>
+                  <td data-defending="ghost" data-multiplier="0" class="immune" aria-label="Normal attacking Ghost: 0 times">0</td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Normal attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Normal attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Normal attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Normal attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="fire"><th scope="row"><span class="type-badge type-fire">Fire</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Fire attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="0.5" class="resist" aria-label="Fire attacking Fire: 0.5 times">½</td>
+                  <td data-defending="water" data-multiplier="0.5" class="resist" aria-label="Fire attacking Water: 0.5 times">½</td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Fire attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="2" class="super" aria-label="Fire attacking Grass: 2 times">2</td>
+                  <td data-defending="ice" data-multiplier="2" class="super" aria-label="Fire attacking Ice: 2 times">2</td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Fire attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Fire attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Fire attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Fire attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Fire attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="2" class="super" aria-label="Fire attacking Bug: 2 times">2</td>
+                  <td data-defending="rock" data-multiplier="0.5" class="resist" aria-label="Fire attacking Rock: 0.5 times">½</td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Fire attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="0.5" class="resist" aria-label="Fire attacking Dragon: 0.5 times">½</td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Fire attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="2" class="super" aria-label="Fire attacking Steel: 2 times">2</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Fire attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="water"><th scope="row"><span class="type-badge type-water">Water</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Water attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="2" class="super" aria-label="Water attacking Fire: 2 times">2</td>
+                  <td data-defending="water" data-multiplier="0.5" class="resist" aria-label="Water attacking Water: 0.5 times">½</td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Water attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="0.5" class="resist" aria-label="Water attacking Grass: 0.5 times">½</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Water attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Water attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Water attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="2" class="super" aria-label="Water attacking Ground: 2 times">2</td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Water attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Water attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Water attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="2" class="super" aria-label="Water attacking Rock: 2 times">2</td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Water attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="0.5" class="resist" aria-label="Water attacking Dragon: 0.5 times">½</td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Water attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="1" class="neutral" aria-label="Water attacking Steel: 1 times"></td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Water attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="electric"><th scope="row"><span class="type-badge type-electric">Electric</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Electric attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Electric attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="2" class="super" aria-label="Electric attacking Water: 2 times">2</td>
+                  <td data-defending="electric" data-multiplier="0.5" class="resist" aria-label="Electric attacking Electric: 0.5 times">½</td>
+                  <td data-defending="grass" data-multiplier="0.5" class="resist" aria-label="Electric attacking Grass: 0.5 times">½</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Electric attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Electric attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Electric attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="0" class="immune" aria-label="Electric attacking Ground: 0 times">0</td>
+                  <td data-defending="flying" data-multiplier="2" class="super" aria-label="Electric attacking Flying: 2 times">2</td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Electric attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Electric attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Electric attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Electric attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="0.5" class="resist" aria-label="Electric attacking Dragon: 0.5 times">½</td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Electric attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="1" class="neutral" aria-label="Electric attacking Steel: 1 times"></td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Electric attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="grass"><th scope="row"><span class="type-badge type-grass">Grass</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Grass attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="0.5" class="resist" aria-label="Grass attacking Fire: 0.5 times">½</td>
+                  <td data-defending="water" data-multiplier="2" class="super" aria-label="Grass attacking Water: 2 times">2</td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Grass attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="0.5" class="resist" aria-label="Grass attacking Grass: 0.5 times">½</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Grass attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Grass attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="0.5" class="resist" aria-label="Grass attacking Poison: 0.5 times">½</td>
+                  <td data-defending="ground" data-multiplier="2" class="super" aria-label="Grass attacking Ground: 2 times">2</td>
+                  <td data-defending="flying" data-multiplier="0.5" class="resist" aria-label="Grass attacking Flying: 0.5 times">½</td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Grass attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="0.5" class="resist" aria-label="Grass attacking Bug: 0.5 times">½</td>
+                  <td data-defending="rock" data-multiplier="2" class="super" aria-label="Grass attacking Rock: 2 times">2</td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Grass attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="0.5" class="resist" aria-label="Grass attacking Dragon: 0.5 times">½</td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Grass attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Grass attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Grass attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="ice"><th scope="row"><span class="type-badge type-ice">Ice</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Ice attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="0.5" class="resist" aria-label="Ice attacking Fire: 0.5 times">½</td>
+                  <td data-defending="water" data-multiplier="0.5" class="resist" aria-label="Ice attacking Water: 0.5 times">½</td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Ice attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="2" class="super" aria-label="Ice attacking Grass: 2 times">2</td>
+                  <td data-defending="ice" data-multiplier="0.5" class="resist" aria-label="Ice attacking Ice: 0.5 times">½</td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Ice attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Ice attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="2" class="super" aria-label="Ice attacking Ground: 2 times">2</td>
+                  <td data-defending="flying" data-multiplier="2" class="super" aria-label="Ice attacking Flying: 2 times">2</td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Ice attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Ice attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Ice attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Ice attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="2" class="super" aria-label="Ice attacking Dragon: 2 times">2</td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Ice attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Ice attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Ice attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="fighting"><th scope="row"><span class="type-badge type-fighting">Fighting</span></th>
+                  <td data-defending="normal" data-multiplier="2" class="super" aria-label="Fighting attacking Normal: 2 times">2</td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Fighting attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Fighting attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Fighting attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Fighting attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="2" class="super" aria-label="Fighting attacking Ice: 2 times">2</td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Fighting attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="0.5" class="resist" aria-label="Fighting attacking Poison: 0.5 times">½</td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Fighting attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="0.5" class="resist" aria-label="Fighting attacking Flying: 0.5 times">½</td>
+                  <td data-defending="psychic" data-multiplier="0.5" class="resist" aria-label="Fighting attacking Psychic: 0.5 times">½</td>
+                  <td data-defending="bug" data-multiplier="0.5" class="resist" aria-label="Fighting attacking Bug: 0.5 times">½</td>
+                  <td data-defending="rock" data-multiplier="2" class="super" aria-label="Fighting attacking Rock: 2 times">2</td>
+                  <td data-defending="ghost" data-multiplier="0" class="immune" aria-label="Fighting attacking Ghost: 0 times">0</td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Fighting attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="2" class="super" aria-label="Fighting attacking Dark: 2 times">2</td>
+                  <td data-defending="steel" data-multiplier="2" class="super" aria-label="Fighting attacking Steel: 2 times">2</td>
+                  <td data-defending="fairy" data-multiplier="0.5" class="resist" aria-label="Fighting attacking Fairy: 0.5 times">½</td>
+                </tr>
+                <tr data-attacking="poison"><th scope="row"><span class="type-badge type-poison">Poison</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Poison attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Poison attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Poison attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Poison attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="2" class="super" aria-label="Poison attacking Grass: 2 times">2</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Poison attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Poison attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="0.5" class="resist" aria-label="Poison attacking Poison: 0.5 times">½</td>
+                  <td data-defending="ground" data-multiplier="0.5" class="resist" aria-label="Poison attacking Ground: 0.5 times">½</td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Poison attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Poison attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Poison attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="0.5" class="resist" aria-label="Poison attacking Rock: 0.5 times">½</td>
+                  <td data-defending="ghost" data-multiplier="0.5" class="resist" aria-label="Poison attacking Ghost: 0.5 times">½</td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Poison attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Poison attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0" class="immune" aria-label="Poison attacking Steel: 0 times">0</td>
+                  <td data-defending="fairy" data-multiplier="2" class="super" aria-label="Poison attacking Fairy: 2 times">2</td>
+                </tr>
+                <tr data-attacking="ground"><th scope="row"><span class="type-badge type-ground">Ground</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Ground attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="2" class="super" aria-label="Ground attacking Fire: 2 times">2</td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Ground attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="2" class="super" aria-label="Ground attacking Electric: 2 times">2</td>
+                  <td data-defending="grass" data-multiplier="0.5" class="resist" aria-label="Ground attacking Grass: 0.5 times">½</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Ground attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Ground attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="2" class="super" aria-label="Ground attacking Poison: 2 times">2</td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Ground attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="0" class="immune" aria-label="Ground attacking Flying: 0 times">0</td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Ground attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="0.5" class="resist" aria-label="Ground attacking Bug: 0.5 times">½</td>
+                  <td data-defending="rock" data-multiplier="2" class="super" aria-label="Ground attacking Rock: 2 times">2</td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Ground attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Ground attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Ground attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="2" class="super" aria-label="Ground attacking Steel: 2 times">2</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Ground attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="flying"><th scope="row"><span class="type-badge type-flying">Flying</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Flying attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Flying attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Flying attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="0.5" class="resist" aria-label="Flying attacking Electric: 0.5 times">½</td>
+                  <td data-defending="grass" data-multiplier="2" class="super" aria-label="Flying attacking Grass: 2 times">2</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Flying attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="2" class="super" aria-label="Flying attacking Fighting: 2 times">2</td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Flying attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Flying attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Flying attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Flying attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="2" class="super" aria-label="Flying attacking Bug: 2 times">2</td>
+                  <td data-defending="rock" data-multiplier="0.5" class="resist" aria-label="Flying attacking Rock: 0.5 times">½</td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Flying attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Flying attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Flying attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Flying attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Flying attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="psychic"><th scope="row"><span class="type-badge type-psychic">Psychic</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Psychic attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Psychic attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Psychic attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Psychic attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Psychic attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Psychic attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="2" class="super" aria-label="Psychic attacking Fighting: 2 times">2</td>
+                  <td data-defending="poison" data-multiplier="2" class="super" aria-label="Psychic attacking Poison: 2 times">2</td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Psychic attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Psychic attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="0.5" class="resist" aria-label="Psychic attacking Psychic: 0.5 times">½</td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Psychic attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Psychic attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Psychic attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Psychic attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="0" class="immune" aria-label="Psychic attacking Dark: 0 times">0</td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Psychic attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Psychic attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="bug"><th scope="row"><span class="type-badge type-bug">Bug</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Bug attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="0.5" class="resist" aria-label="Bug attacking Fire: 0.5 times">½</td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Bug attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Bug attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="2" class="super" aria-label="Bug attacking Grass: 2 times">2</td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Bug attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="0.5" class="resist" aria-label="Bug attacking Fighting: 0.5 times">½</td>
+                  <td data-defending="poison" data-multiplier="0.5" class="resist" aria-label="Bug attacking Poison: 0.5 times">½</td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Bug attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="0.5" class="resist" aria-label="Bug attacking Flying: 0.5 times">½</td>
+                  <td data-defending="psychic" data-multiplier="2" class="super" aria-label="Bug attacking Psychic: 2 times">2</td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Bug attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Bug attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="0.5" class="resist" aria-label="Bug attacking Ghost: 0.5 times">½</td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Bug attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="2" class="super" aria-label="Bug attacking Dark: 2 times">2</td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Bug attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="0.5" class="resist" aria-label="Bug attacking Fairy: 0.5 times">½</td>
+                </tr>
+                <tr data-attacking="rock"><th scope="row"><span class="type-badge type-rock">Rock</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Rock attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="2" class="super" aria-label="Rock attacking Fire: 2 times">2</td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Rock attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Rock attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Rock attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="2" class="super" aria-label="Rock attacking Ice: 2 times">2</td>
+                  <td data-defending="fighting" data-multiplier="0.5" class="resist" aria-label="Rock attacking Fighting: 0.5 times">½</td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Rock attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="0.5" class="resist" aria-label="Rock attacking Ground: 0.5 times">½</td>
+                  <td data-defending="flying" data-multiplier="2" class="super" aria-label="Rock attacking Flying: 2 times">2</td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Rock attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="2" class="super" aria-label="Rock attacking Bug: 2 times">2</td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Rock attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Rock attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Rock attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Rock attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Rock attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Rock attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="ghost"><th scope="row"><span class="type-badge type-ghost">Ghost</span></th>
+                  <td data-defending="normal" data-multiplier="0" class="immune" aria-label="Ghost attacking Normal: 0 times">0</td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Ghost attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Ghost attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Ghost attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Ghost attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Ghost attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Ghost attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Ghost attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Ghost attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Ghost attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="2" class="super" aria-label="Ghost attacking Psychic: 2 times">2</td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Ghost attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Ghost attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="2" class="super" aria-label="Ghost attacking Ghost: 2 times">2</td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Ghost attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="0.5" class="resist" aria-label="Ghost attacking Dark: 0.5 times">½</td>
+                  <td data-defending="steel" data-multiplier="1" class="neutral" aria-label="Ghost attacking Steel: 1 times"></td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Ghost attacking Fairy: 1 times"></td>
+                </tr>
+                <tr data-attacking="dragon"><th scope="row"><span class="type-badge type-dragon">Dragon</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Dragon attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Dragon attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Dragon attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Dragon attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Dragon attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Dragon attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Dragon attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Dragon attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Dragon attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Dragon attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Dragon attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Dragon attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Dragon attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Dragon attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="2" class="super" aria-label="Dragon attacking Dragon: 2 times">2</td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Dragon attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Dragon attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="0" class="immune" aria-label="Dragon attacking Fairy: 0 times">0</td>
+                </tr>
+                <tr data-attacking="dark"><th scope="row"><span class="type-badge type-dark">Dark</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Dark attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="1" class="neutral" aria-label="Dark attacking Fire: 1 times"></td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Dark attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Dark attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Dark attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Dark attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="0.5" class="resist" aria-label="Dark attacking Fighting: 0.5 times">½</td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Dark attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Dark attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Dark attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="2" class="super" aria-label="Dark attacking Psychic: 2 times">2</td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Dark attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Dark attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="2" class="super" aria-label="Dark attacking Ghost: 2 times">2</td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Dark attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="0.5" class="resist" aria-label="Dark attacking Dark: 0.5 times">½</td>
+                  <td data-defending="steel" data-multiplier="1" class="neutral" aria-label="Dark attacking Steel: 1 times"></td>
+                  <td data-defending="fairy" data-multiplier="0.5" class="resist" aria-label="Dark attacking Fairy: 0.5 times">½</td>
+                </tr>
+                <tr data-attacking="steel"><th scope="row"><span class="type-badge type-steel">Steel</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Steel attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="0.5" class="resist" aria-label="Steel attacking Fire: 0.5 times">½</td>
+                  <td data-defending="water" data-multiplier="0.5" class="resist" aria-label="Steel attacking Water: 0.5 times">½</td>
+                  <td data-defending="electric" data-multiplier="0.5" class="resist" aria-label="Steel attacking Electric: 0.5 times">½</td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Steel attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="2" class="super" aria-label="Steel attacking Ice: 2 times">2</td>
+                  <td data-defending="fighting" data-multiplier="1" class="neutral" aria-label="Steel attacking Fighting: 1 times"></td>
+                  <td data-defending="poison" data-multiplier="1" class="neutral" aria-label="Steel attacking Poison: 1 times"></td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Steel attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Steel attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Steel attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Steel attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="2" class="super" aria-label="Steel attacking Rock: 2 times">2</td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Steel attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="1" class="neutral" aria-label="Steel attacking Dragon: 1 times"></td>
+                  <td data-defending="dark" data-multiplier="1" class="neutral" aria-label="Steel attacking Dark: 1 times"></td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Steel attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="2" class="super" aria-label="Steel attacking Fairy: 2 times">2</td>
+                </tr>
+                <tr data-attacking="fairy"><th scope="row"><span class="type-badge type-fairy">Fairy</span></th>
+                  <td data-defending="normal" data-multiplier="1" class="neutral" aria-label="Fairy attacking Normal: 1 times"></td>
+                  <td data-defending="fire" data-multiplier="0.5" class="resist" aria-label="Fairy attacking Fire: 0.5 times">½</td>
+                  <td data-defending="water" data-multiplier="1" class="neutral" aria-label="Fairy attacking Water: 1 times"></td>
+                  <td data-defending="electric" data-multiplier="1" class="neutral" aria-label="Fairy attacking Electric: 1 times"></td>
+                  <td data-defending="grass" data-multiplier="1" class="neutral" aria-label="Fairy attacking Grass: 1 times"></td>
+                  <td data-defending="ice" data-multiplier="1" class="neutral" aria-label="Fairy attacking Ice: 1 times"></td>
+                  <td data-defending="fighting" data-multiplier="2" class="super" aria-label="Fairy attacking Fighting: 2 times">2</td>
+                  <td data-defending="poison" data-multiplier="0.5" class="resist" aria-label="Fairy attacking Poison: 0.5 times">½</td>
+                  <td data-defending="ground" data-multiplier="1" class="neutral" aria-label="Fairy attacking Ground: 1 times"></td>
+                  <td data-defending="flying" data-multiplier="1" class="neutral" aria-label="Fairy attacking Flying: 1 times"></td>
+                  <td data-defending="psychic" data-multiplier="1" class="neutral" aria-label="Fairy attacking Psychic: 1 times"></td>
+                  <td data-defending="bug" data-multiplier="1" class="neutral" aria-label="Fairy attacking Bug: 1 times"></td>
+                  <td data-defending="rock" data-multiplier="1" class="neutral" aria-label="Fairy attacking Rock: 1 times"></td>
+                  <td data-defending="ghost" data-multiplier="1" class="neutral" aria-label="Fairy attacking Ghost: 1 times"></td>
+                  <td data-defending="dragon" data-multiplier="2" class="super" aria-label="Fairy attacking Dragon: 2 times">2</td>
+                  <td data-defending="dark" data-multiplier="2" class="super" aria-label="Fairy attacking Dark: 2 times">2</td>
+                  <td data-defending="steel" data-multiplier="0.5" class="resist" aria-label="Fairy attacking Steel: 0.5 times">½</td>
+                  <td data-defending="fairy" data-multiplier="1" class="neutral" aria-label="Fairy attacking Fairy: 1 times"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chart-legend"><span><b class="super">2×</b> Super effective</span><span><b class="resist">½×</b> Not very effective</span><span><b class="immune">0×</b> No effect</span><span><b class="neutral">1×</b> Normal damage</span></div>
+      </section>
+    </main>
+    <footer class="site-bottom-bar" aria-label="Site footer"></footer>
+  </body>
+</html>

@@ -26,7 +26,7 @@ button, input, select { max-width: 100%; }
 .pokecard { font-size: 22px; padding: 14px 11px 17px; border-radius: 14px; }
 .pokecard img { width: 112px; height: 112px; }
 .artwork-placeholder { height: 112px; }
-.pokecard .pokemon-name { white-space: normal; overflow-wrap: anywhere; }
+.pokecard .pokemon-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
 .card-types { flex-wrap: wrap; gap: 8px; padding: 0; }
 .pokecard .type-badge { transform: none; width: auto; padding: 6px 8px; font-size: 20px; }
 .homepage-layout .homepage-filters { gap: 10px; top: calc(var(--homepage-header-height, 101px) + 12px); padding: 12px; font-size: 18px; }
@@ -46,12 +46,10 @@ button, input, select { max-width: 100%; }
 .homepage-filters .sidebar-sort-controls .filter-trigger,
 .homepage-filters .minimum-stat-row .filter-trigger { height: auto; min-height: 38px; }
 .homepage-filters .game-selected-name { white-space: normal; overflow: visible; }
-.homepage-filters .filter-menu { position: static; display: none; min-width: 0; width: 100%; max-width: 100%; margin-top: 6px; overflow-y: auto; transform: none; }
-.homepage-filters .filter-dropdown.open .filter-menu { display: block; }
-.homepage-filters .filter-dropdown.open .type-filter-menu { display: grid; }
+.homepage-filters .filter-menu { position: fixed; min-width: 0; width: max-content; max-width: min(290px, calc(100vw - 24px)); margin: 0; overflow-y: auto; }
 .homepage-filters .filter-option { white-space: normal; overflow-wrap: anywhere; }
 .homepage-filters .type-filter-menu { overflow-y: auto; }
-.homepage-filters .type-badge { width: auto; font-size: 14px; }
+.homepage-filters .type-badge { display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 26px; font-size: 14px; }
 .homepage-filters #usage-note { position: static; width: 100%; max-width: 100%; margin-top: 6px; }
 .index-toolbar { top: calc(var(--homepage-header-height, 101px) + 12px); }
 .index-display-controls { gap: 14px; font-size: 22px; }
