@@ -1,5 +1,16 @@
 (() => {
   const storageKey = 'compdex.settings.v1';
+  const welcomeStorageKey='compdex.welcome.hidden.v1';
+  let welcomeHidden=false;
+  try { welcomeHidden=localStorage.getItem(welcomeStorageKey)==='true'; } catch {}
+  function setWelcomeVisibility(show) {
+    welcomeHidden=!show;
+    try {
+      if (welcomeHidden) localStorage.setItem(welcomeStorageKey,'true');
+      else localStorage.removeItem(welcomeStorageKey);
+      return true;
+    } catch { return false; }
+  }
   const defaults = Object.freeze({theme:'light',artwork:'animatedPixel',defaultArtwork:'animatedPixel',shiny:false,includeEvolutions:true,defaultRelated:true,includeAltForms:true,defaultSort:'id',sortDirection:'asc',pageSize:50,animations:'full',accent:'#66adff'});
   const artworkStyles = ['hd','pixel','champions','animated','animatedPixel'];
   function validate(value) {
@@ -26,6 +37,7 @@
   if (relatedParam === '0' || relatedParam === '1') preferences.includeEvolutions = relatedParam === '1';
   const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
   let syncCardAppearance = () => {};
+  let syncThemeControl = () => {};
   function logoUrl() {
     if (preferences.accent === defaults.accent) return new URL('favicon.svg', document.baseURI).href;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0f172a"/><circle cx="256" cy="256" r="172" fill="#f8fafc" stroke="#020617" stroke-width="22"/><path d="M84 256a172 172 0 0 1 344 0H84Z" fill="${preferences.accent}"/><rect x="84" y="244" width="344" height="24" fill="#020617"/><circle cx="256" cy="256" r="58" fill="#f8fafc" stroke="#020617" stroke-width="18"/><circle cx="256" cy="256" r="22" fill="${preferences.accent}"/></svg>`;
@@ -35,6 +47,7 @@
     const root = document.documentElement;
     const theme = preferences.theme === 'system' ? (systemTheme.matches ? 'dark' : 'light') : preferences.theme;
     root.dataset.theme = theme;
+    syncThemeControl();
     root.dataset.animations = preferences.animations;
     root.style.setProperty('--accent', preferences.accent);
     const rgb = [1,3,5].map(index => parseInt(preferences.accent.slice(index,index+2),16));
@@ -96,6 +109,21 @@
       syncCardAppearance();
     }
     const shareButton=document.getElementById('share-button');
+    const themeToggle=document.createElement('button');
+    themeToggle.id='theme-toggle';
+    themeToggle.className='theme-toggle';
+    themeToggle.type='button';
+    themeToggle.setAttribute('role','switch');
+    themeToggle.setAttribute('aria-label','Dark mode');
+    themeToggle.innerHTML='<span class="theme-track" aria-hidden="true"><span class="theme-thumb"><span class="theme-sun">🌤️</span><span class="theme-moon">☾<span class="theme-stars">✦</span></span></span></span>';
+    shareButton.before(themeToggle);
+    syncThemeControl=()=>themeToggle.setAttribute('aria-checked',String(document.documentElement.dataset.theme==='dark'));
+    syncThemeControl();
+    themeToggle.addEventListener('click',()=>{
+      const next={...preferences,theme:document.documentElement.dataset.theme==='dark'?'light':'dark'};
+      try { localStorage.setItem(storageKey,JSON.stringify(next)); } catch {}
+      publish(next);
+    });
     const shareUrl='https://edwinhuangofficial-blip.github.io/compdex/';
     const shareWrap=document.createElement('div');
     shareWrap.className='share-wrap';
@@ -153,6 +181,7 @@
           <div class="settings-row"><label for="setting-alt-forms">Include alternate forms</label><input id="setting-alt-forms" type="checkbox" /></div>
           <div class="settings-row"><label for="setting-sort">Default sorting</label><div class="settings-sort-controls"><select id="setting-sort"><option value="id">#</option><option value="name">Name</option><option value="total">Base Stat Total</option><option value="speed">Speed</option><option value="attack">Attack</option><option value="special-attack">Special Attack</option><option value="defense">Defense</option><option value="special-defense">Special Defense</option><option value="hp">HP</option></select><button id="setting-sort-direction" type="button" aria-label="Ascending order; switch to descending">↑</button></div></div>
           <div class="settings-row"><label for="setting-animations">Animations</label><select id="setting-animations"><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></div>
+          <div class="settings-row"><label for="setting-show-welcome">Display Welcome pop up?</label><div class="settings-welcome-controls"><button id="setting-see-welcome" type="button" aria-haspopup="dialog" aria-controls="welcome-dialog">See</button><input id="setting-show-welcome" type="checkbox" /></div></div>
         </div>
         <p id="settings-status" role="status" aria-live="polite"></p>
         <div class="settings-actions"><button id="restore-settings" type="button">Restore defaults</button><button id="save-settings" type="submit">Save</button></div>
@@ -224,8 +253,18 @@
       }
       function open() {
         dropdowns.forEach(dropdown=>dropdown.close());
-        const roomBelow=dialog.getBoundingClientRect().bottom-wrapper.getBoundingClientRect().bottom;
-        wrapper.classList.toggle('opens-up',roomBelow<menu.scrollHeight+16);
+        const bounds=trigger.getBoundingClientRect();
+        const panel=dialog.getBoundingClientRect();
+        const roomAbove=bounds.top-Math.max(panel.top,0)-20;
+        const roomBelow=Math.min(panel.bottom,innerHeight)-bounds.bottom-20;
+        const opensUp=roomBelow<menu.scrollHeight && roomAbove>roomBelow;
+        const borderLeft=parseFloat(getComputedStyle(dialog).borderLeftWidth);
+        const borderTop=parseFloat(getComputedStyle(dialog).borderTopWidth);
+        menu.style.width=Math.min(bounds.width,panel.width-24)+'px';
+        menu.style.maxHeight=Math.max(1,Math.min(320,opensUp?roomAbove:roomBelow))+'px';
+        menu.style.left=Math.max(12,Math.min(bounds.left-panel.left-borderLeft,panel.width-menu.offsetWidth-16))+dialog.scrollLeft+'px';
+        menu.style.top=(opensUp?bounds.top-menu.offsetHeight-8:bounds.bottom+8)-panel.top-borderTop+dialog.scrollTop+'px';
+        wrapper.classList.toggle('opens-up',opensUp);
         wrapper.classList.add('open');
         trigger.setAttribute('aria-expanded','true');
         menu.inert=false;
@@ -250,10 +289,17 @@
       sync();
     }
     dialog.querySelectorAll('select').forEach(createSettingsDropdown);
+    window.addEventListener('compdex:settings-changed',event=>{
+      if (event.detail.previous.theme===event.detail.settings.theme) return;
+      control('setting-theme').value=event.detail.settings.theme;
+      dropdowns.forEach(dropdown=>dropdown.sync());
+    });
+    dialog.addEventListener('scroll',()=>dropdowns.forEach(dropdown=>dropdown.close()));
+    window.addEventListener('resize',()=>dropdowns.forEach(dropdown=>dropdown.close()));
     dialog.addEventListener('pointerdown',event=>{
       dropdowns.forEach(dropdown=>{if(!dropdown.wrapper.contains(event.target))dropdown.close();});
     });
-    function fill(settings) {
+    function fill(settings,showWelcome=!welcomeHidden) {
       control('setting-theme').value=settings.theme;
       control('setting-default-artwork').value=settings.defaultArtwork;
       control('setting-page-size').value=settings.pageSize;
@@ -263,6 +309,7 @@
       draftSortDirection=settings.sortDirection;
       syncDirection();
       control('setting-animations').value=settings.animations;
+      control('setting-show-welcome').checked=showWelcome;
       control('setting-color-hex').value=settings.accent.slice(1);
       control('setting-color-picker').value=settings.accent;
       dropdowns.forEach(dropdown=>{dropdown.sync();dropdown.close();});
@@ -282,6 +329,7 @@
       const next=validate({defaultArtwork,defaultRelated,artwork:restoringDefaults||defaultArtwork!==preferences.defaultArtwork?defaultArtwork:preferences.artwork,shiny:restoringDefaults?defaults.shiny:preferences.shiny,theme:control('setting-theme').value,pageSize:Number(control('setting-page-size').value),includeEvolutions:restoringDefaults||defaultRelated!==preferences.defaultRelated?defaultRelated:preferences.includeEvolutions,includeAltForms:control('setting-alt-forms').checked,defaultSort:control('setting-sort').value,sortDirection:draftSortDirection,animations:control('setting-animations').value,accent:'#'+control('setting-color-hex').value});
       let saved=true;
       try { localStorage.setItem(storageKey,JSON.stringify(next)); } catch { saved=false; }
+      if (!setWelcomeVisibility(control('setting-show-welcome').checked)) saved=false;
       if (restoringDefaults) {
         const url=new URL(location.href);
         if (url.searchParams.has('related')) {
@@ -296,7 +344,7 @@
     });
     control('restore-settings').addEventListener('click',()=>{
       restoringDefaults=true;
-      fill(defaults);
+      fill(defaults,true);
       status.textContent='Defaults selected. Press Save to apply.';
     });
     const button=document.getElementById('settings-button');
@@ -318,5 +366,51 @@
     });
     dialog.addEventListener('close',()=>button.focus());
     fill(preferences);
+
+    const welcome=document.createElement('dialog');
+    welcome.id='welcome-dialog';
+    welcome.setAttribute('aria-labelledby','welcome-title');
+    welcome.setAttribute('aria-describedby','welcome-description');
+    welcome.innerHTML=`<div class="settings-heading welcome-heading">
+        <h2 id="welcome-title">Welcome to CompDex</h2>
+        <button id="close-welcome" type="button" aria-label="Close welcome popup" autofocus><img src="assets/search-clear.png" alt="" /></button>
+      </div>
+      <div id="welcome-description" class="welcome-copy">
+        <ul class="welcome-features" role="list">
+          <li>Check out the filters and look for Pokémon!</li>
+          <li>Customizable settings to fit your aesthetics</li>
+          <li>Various artworks to choose from</li>
+        </ul>
+      </div>
+      <section class="welcome-updates" aria-labelledby="welcome-updates-title">
+        <h3 id="welcome-updates-title">Recent major updates</h3>
+        <article><time datetime="2026-10-19">October 19, 2026</time><h4>Responsive layouts</h4><p>Better layouts for desktops, laptops, and phones, with scrollable filters that stay accessible.</p></article>
+        <article><time datetime="2026-10-04">October 4, 2026</time><h4>Two-type filtering</h4><p>Choose up to two types in one dropdown to narrow your Pokémon search.</p></article>
+      </section>
+      <div class="welcome-footer"><label for="hide-welcome"><input id="hide-welcome" type="checkbox" /> Don’t show this next time</label><button id="welcome-get-started" type="button">Get started</button></div>`;
+    document.body.append(welcome);
+    const hideWelcome=welcome.querySelector('#hide-welcome');
+    function showWelcome() {
+      hideWelcome.checked=welcomeHidden;
+      if (!welcome.open) welcome.showModal();
+    }
+    control('setting-see-welcome').addEventListener('click',showWelcome);
+    hideWelcome.addEventListener('change',()=>{
+      setWelcomeVisibility(!hideWelcome.checked);
+      control('setting-show-welcome').checked=!welcomeHidden;
+    });
+    welcome.querySelector('#close-welcome').addEventListener('click',()=>welcome.close());
+    welcome.querySelector('#welcome-get-started').addEventListener('click',()=>welcome.close());
+    welcome.addEventListener('click',event=>{
+      const bounds=welcome.getBoundingClientRect();
+      if(event.target===welcome&&(event.clientX<bounds.left||event.clientX>bounds.right||event.clientY<bounds.top||event.clientY>bounds.bottom))welcome.close();
+    });
+    // A tab visit survives reloads and navigation, but ends when the tab closes.
+    let welcomeSeen=false;
+    try {
+      welcomeSeen=sessionStorage.getItem('compdex.welcome.seen.v1')==='true';
+      sessionStorage.setItem('compdex.welcome.seen.v1','true');
+    } catch {}
+    if (document.querySelector('.homepage-layout') && !welcomeHidden && !welcomeSeen) showWelcome();
   });
 })();

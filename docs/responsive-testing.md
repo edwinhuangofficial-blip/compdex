@@ -8,7 +8,9 @@ The published site provides the visual baseline: 236.5px-wide desktop cards,
 uses a centered 1580px homepage area to fit five original-size cards, with fewer columns when
 space becomes limited. The intentional outer side areas remain available for
 future content; wider screens do not stretch the cards or add a sixth column.
-The detail page retains its 1320px content limit.
+The detail page is left-aligned and uses the available desktop width: primary
+information occupies up to 870px on the left, with at least 690px reserved for
+horizontal evolution stages on the right.
 
 `css/responsive.css` owns responsive layout across all three pages. It replaces
 fixed detail-page columns and prevents the sticky sidebar from extending beyond
@@ -28,30 +30,47 @@ filter values, and filtering logic. All three HTML pages load the new stylesheet
 | Available CSS viewport | Behavior |
 |---|---|
 | Above 1024px wide | 244px sticky sidebar, independently scrollable below the measured header; results fill remaining width. |
-| At or below 1024px wide | Filters button opens a scrollable modal with Close, Escape, outside-click dismissal, and focus wrapping/restoration. Detail evolution moves below primary information. |
-| At or below 1120px wide | Header search moves to its own row, including space for the longer Pokémon Info label. |
+| At or below 1320px wide | Detail evolution moves below the primary information, retaining a horizontal chain whenever its own container is wide enough. |
+| At or below 1024px wide | Filters button opens a scrollable modal with Close, Escape, outside-click dismissal, and focus wrapping/restoration. |
+| At or below 1200px wide | Header search moves to its own row, including space for the longer Pokémon Info label and theme slider. |
 | At or below 760px wide | Cards use 18px text/100px artwork; artwork/stats stack; compact header buttons retain accessible names; Pokémon number navigation moves into page flow. |
 | At or below 420px wide | Card minimum width changes from 180px to 150px, allowing two readable cards on 375px/390px screens. Stats and type matchups adapt. |
 | At or below 600px tall | Header and results toolbar stop pinning over content; sidebar keeps a viewport height limit. |
 
 The sidebar's scroll limit subtracts the actual header height and panel spacing
 from `100dvh`. Filter dropdowns expand inside that scroll area and have their own
-height limit, including the types menu. Settings dropdowns also expand in flow
-inside their scrollable dialog. Opening menus cannot place options outside an
+height limit, including the types menu. Settings dropdowns float over the form,
+opening above or below their controls within the dialog's visible bounds. They
+retain their fade transitions without moving the form. Opening menus cannot place options outside an
 unscrollable clipped area. Desktop page scrolling remains available.
 
 ## Automated results
 
-On October 18, 2026, Playwright with installed Chrome 143 passed **97/97 checks**
+On October 19, 2026, Playwright with installed Chrome 143 passed **127/127 checks**
 against a local server and live PokéAPI data. No uncaught page errors occurred.
 The suite records actual `innerWidth`, `innerHeight`, `devicePixelRatio`, and
 `visualViewport.scale`; the last stays 1 (100% browser zoom).
+
+Welcome-popup checks cover display once per tab visit, no repetition on reload
+or returning Home, display in a fresh tab, dismissal, persistent
+opt-out across reloads, the checkbox under Animations on home/detail Settings,
+discarding unsaved checkbox changes, saving future display, mobile sizing, dark
+theme, and custom accent color. Full/Reduced/Off animation checks verify modal
+animation behavior and stable form/page positions while each dropdown is open.
+Desktop and small-mobile popup screenshots and the floating Settings menu were
+visually inspected.
+
+The header theme switch reuses the markup and styling from
+[the portfolio repository](https://github.com/edwinhuangofficial-blip/edwinhuangofficial-blip.github.io),
+including 🌤️ and the ☾/✦ moon. Tests check its exact track/thumb dimensions,
+keyboard interaction, saved preference, synchronization with Settings in both
+directions, System mode, and changes from another tab.
 
 Both home and Bulbasaur detail pages were checked at every viewport below:
 
 - 1920×1080, 1536×864, 1440×900, 1366×768, 1280×720, 1024×768,
   768×1024, 390×844, and 375×667.
-- Boundary cases 1320×900, 1121×768, 1120×768, 1025×768, 761×768, and 760×768; short window 1280×500.
+- Boundary cases 1321×900, 1320×900, 1201×768, 1200×768, 1121×768, 1120×768, 1025×768, 761×768, and 760×768; short window 1280×500.
 - Every scaling equivalent in the following table, also repeated with 120 CSS
   pixels subtracted from height to allow for browser chrome and the taskbar.
 
@@ -85,6 +104,10 @@ selection, search suggestions, search navigation, stats layout, settings options
 and final settings actions. Eevee, Wurmple, and Tyrogue evolution layouts were
 checked at 1440×900, 768×1024, and 375×667. The not-found page was checked at
 1440×900 and 375×667. Desktop and small-mobile screenshots were visually inspected.
+
+Alternate-form coverage is documented in [forms.md](forms.md). Tests also check
+regional path selection and compatibility, family-wide Mega/Gmax replacement,
+Primal items, non-item dividers, fusion forms, and typed Arceus/Genesect links.
 
 ## Reproduce locally
 

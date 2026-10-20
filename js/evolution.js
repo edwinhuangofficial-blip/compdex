@@ -50,57 +50,6 @@
   function requirements(details) {
     return [...new Set((details || []).map(requirement))].join(' OR ');
   }
-  const megaDataUrl = 'https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/pokedex.ts';
-  let megaRequirementsRequest;
-  // Match API and Showdown form names despite punctuation or gender-token order.
-  const formKey = name => String(name).toLowerCase().replace(/\bfemale\b/g, 'f').replace(/\bmale\b/g, 'm')
-    .split(/[^a-z0-9]+/).filter(Boolean).sort().join('-');
-  function parseMegaRequirements(source) {
-    const result = new Map();
-    // Read quoted metadata only. Never execute the downloaded TypeScript.
-    for (const [, block] of source.matchAll(/^\t[a-z0-9]+: \{([\s\S]*?)^\t\},/gm)) {
-      const field = key => block.match(new RegExp(`^\\t\\t${key}: "([^"\\n]+)"`, 'm'))?.[1];
-      const name = field('name');
-      if (!name || !name.split('-').includes('Mega')) continue;
-      const item = field('requiredItem');
-      const move = field('requiredMove');
-      if (item || move) result.set(formKey(name), item || `Know ${move}`);
-    }
-    if (!result.size) throw new Error('Mega requirement source format changed');
-    return result;
-  }
-  function loadMegaRequirements() {
-    if (!megaRequirementsRequest) {
-      megaRequirementsRequest = fetch(megaDataUrl).then(response => {
-        if (!response.ok) throw new Error('Mega requirements unavailable');
-        return response.text();
-      }).then(parseMegaRequirements).catch(error => { megaRequirementsRequest = null; throw error; });
-    }
-    return megaRequirementsRequest;
-  }
-  function fillMegaRequirements(entries, version) {
-    if (!entries.length) return;
-    loadMegaRequirements().then(requirements => {
-      if (version !== loadVersion) return;
-      for (const {name, label} of entries) {
-        label.textContent = requirements.get(formKey(name)) || 'Requirement unavailable';
-        label.title = 'Mega requirements: Pokémon Showdown';
-      }
-    }).catch(() => {
-      if (version !== loadVersion) return;
-      for (const {label} of entries) {
-        label.replaceChildren();
-        const retry = document.createElement('button');
-        retry.type = 'button';
-        retry.textContent = 'Retry requirement';
-        retry.addEventListener('click', () => {
-          entries.forEach(entry => { entry.label.textContent = 'Loading requirement…'; });
-          fillMegaRequirements(entries, version);
-        });
-        label.append('Requirement unavailable. ', retry);
-      }
-    });
-  }
   function updateArtwork(preferences = window.CompDexSettings.get(), replayEntrance = false) {
     for (const {image, sprites} of cards) {
       swapPreparedArtwork(image, getPokemonArtwork(sprites, preferences), preferences, true).then(changed => {
@@ -125,7 +74,10 @@
     wrapper.className = 'evolution-entry';
     wrapper.style.setProperty('--evolution-entrance-delay', `${Math.min(cards.length, 8) * 60}ms`);
     const name = reverseTransformName(pokemon.name);
-    wrapper.innerHTML = `<a class="evolution-card${pokemon.id === currentId ? ' current' : ''}" href="pokemoninfo.html?pokemon=${encodeURIComponent(pokemon.name)}"${pokemon.id === currentId ? ' aria-current="page"' : ''}><strong>${escape(name)}</strong><span class="evolution-number">#${pokemon.id}</span><img alt="${escape(name)}" decoding="async"><div class="evolution-types">${pokemon.types.map(entry => `<span class="type-badge type-${escape(entry.type.name)}">${escape(entry.type.name)}</span>`).join('')}</div></a><div class="evolution-requirement">${escape(text)}</div>`;
+    const requestedForm=new URLSearchParams(location.search).get('form');
+    const current=pokemon.formResource?pokemon.name===requestedForm:!requestedForm&&pokemon.id===currentId;
+    const href=`pokemoninfo.html?pokemon=${encodeURIComponent(pokemon.basePokemonName||pokemon.name)}${pokemon.formResource?'&form='+encodeURIComponent(pokemon.name):''}`;
+    wrapper.innerHTML = `<a class="evolution-card${current ? ' current' : ''}" href="${href}"${current ? ' aria-current="page"' : ''}><strong>${escape(name)}</strong><span class="evolution-number">#${pokemon.id}</span><img alt="${escape(name)}" decoding="async"><div class="evolution-types">${pokemon.types.map(entry => `<span class="type-badge type-${escape(entry.type.name)}">${escape(entry.type.name)}</span>`).join('')}</div></a><div class="evolution-requirement">${escape(text)}</div>`;
     cards.push({image:wrapper.querySelector('img'), sprites:compactPokemonSprites(pokemon.sprites)});
     return wrapper;
   }
@@ -294,6 +246,112 @@
       || options.find(option => option.pokemon.name === 'sylveon') || options[0], false);
     return layout;
   }
+  async function limited(items,fn){
+    const result=new Array(items.length);let next=0;
+    await Promise.all(Array.from({length:Math.min(4,items.length)},async()=>{
+      while(next<items.length){const index=next++;result[index]=await fn(items[index]);}
+    }));return result;
+  }
+  function releaseWithin(host){
+    cards.filter(entry=>host.contains(entry.image)).forEach(releaseCardImage);
+    cards=cards.filter(entry=>!host.contains(entry.image));
+  }
+  function renderRoute(paths,currentId){
+    if(paths.length!==1)return renderEvolutionPaths(paths,currentId);
+    const chain=document.createElement('div');chain.className='evolution-chain';
+    paths[0].forEach((step,index)=>{
+      const stage=document.createElement('div');stage.className='evolution-stage';
+      const branch=document.createElement('div');branch.className='evolution-branch';
+      if(index){
+        const connector=document.createElement('div');connector.className='evolution-connector';
+        connector.innerHTML=`<strong>${escape(step.text)}</strong><span aria-hidden="true">→</span>`;
+        branch.append(connector);
+      }
+      branch.append(card(step.pokemon,'',currentId));stage.append(branch);chain.append(stage);
+    });return chain;
+  }
+  function formDropdown(select){
+    const wrapper=document.createElement('div');wrapper.className='evolution-dropdown';
+    select.hidden=true;
+    const trigger=document.createElement('button');trigger.type='button';trigger.className='evolution-dropdown-trigger';trigger.id=select.id+'-trigger';
+    trigger.setAttribute('aria-label',select.getAttribute('aria-label'));trigger.setAttribute('aria-haspopup','menu');
+    const menu=document.createElement('div');menu.className='evolution-dropdown-menu';menu.id=select.id+'-menu';menu.setAttribute('role','menu');menu.setAttribute('aria-label',select.getAttribute('aria-label'));
+    trigger.setAttribute('aria-controls',menu.id);
+    function open(value){
+      wrapper.classList.toggle('open',value);trigger.setAttribute('aria-expanded',String(value));menu.inert=!value;
+      if(value){
+        menu.style.removeProperty('margin-left');
+        const rect=menu.getBoundingClientRect();
+        menu.style.marginLeft=`${Math.max(8-rect.left,Math.min(0,innerWidth-8-rect.right))}px`;
+        menu.style.maxHeight=`${Math.max(80,innerHeight-trigger.getBoundingClientRect().bottom-20)}px`;
+      }
+    }
+    function sync(){
+      trigger.textContent=select.selectedOptions[0].textContent;
+      menu.querySelectorAll('button').forEach(button=>button.setAttribute('aria-checked',String(button.dataset.value===select.value)));
+    }
+    for(const option of select.options){
+      const button=document.createElement('button');button.type='button';button.textContent=option.textContent;button.dataset.value=option.value;button.setAttribute('role','menuitemradio');
+      button.addEventListener('click',()=>{select.value=option.value;sync();open(false);trigger.focus();select.dispatchEvent(new Event('change'));});
+      menu.append(button);
+    }
+    trigger.addEventListener('click',()=>open(!wrapper.classList.contains('open')));
+    wrapper.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){event.preventDefault();open(false);trigger.focus();}
+      if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+        event.preventDefault();open(true);
+        const buttons=[...menu.children],index=buttons.indexOf(document.activeElement);
+        const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
+        buttons[next].focus();
+      }
+    });
+    wrapper.addEventListener('focusout',event=>{if(!wrapper.contains(event.relatedTarget))open(false);});
+    select.addEventListener('change',sync);
+    wrapper.append(select,trigger,menu);sync();open(false);return wrapper;
+  }
+  document.addEventListener('pointerdown',event=>{
+    document.querySelectorAll('.evolution-dropdown.open').forEach(wrapper=>{
+      if(wrapper.contains(event.target))return;
+      wrapper.classList.remove('open');wrapper.querySelector('button').setAttribute('aria-expanded','false');wrapper.querySelector('[role="menu"]').inert=true;
+    });
+  });
+  function renderAlternates(host,entries,current){
+    host.hidden=!entries.length;if(!entries.length)return;
+    const Forms=window.CompDexForms;
+    const heading=document.createElement('h3');heading.className='evolution-mega-heading';
+    const label=document.createElement('span');
+    const select=document.createElement('select');select.id='forms-category';select.className='evolution-select';select.setAttribute('aria-label','Alternate form category');
+    Object.entries(Forms.categories).forEach(([value,name])=>{if(entries.some(entry=>entry.category===value))select.add(new Option(name,value));});
+    select.value=entries.find(entry=>entry.pokemon.name===current.name)?.category||select.options[0].value;
+    if(select.options.length===1&&select.value==='mega'){
+      select.hidden=true;
+      label.append(document.createTextNode('Mega Evolution'),select);
+    }else label.append(formDropdown(select));
+    const symbol=document.createElement('span');symbol.className='evolution-mega-symbol';
+    heading.append(label,symbol);
+    const grid=document.createElement('div');grid.className='evolution-megas';grid.id='alternate-form-cards';
+    host.append(heading,grid);
+    function render(){
+      releaseWithin(grid);grid.replaceChildren();symbol.replaceChildren();
+      const selected=entries.filter(entry=>entry.category===select.value);
+      host.dataset.category=select.value;
+      const icons=Forms.icons(select.value,selected);
+      symbol.classList.toggle('continuous',!icons.length);
+      icons.forEach(icon=>{const image=document.createElement('img');image.src=icon.src;image.alt=icon.alt;symbol.append(image);});
+      const species=[...new Set(selected.map(entry=>entry.species))];
+      for(const name of species){
+        const group=document.createElement('div');group.className='evolution-mega-group';
+        selected.filter(entry=>entry.species===name).forEach((entry,index)=>{
+          if(index){const arrow=document.createElement('span');arrow.className='evolution-mega-arrow';arrow.textContent='↔';arrow.setAttribute('aria-label','Alternative forms');group.append(arrow);}
+          const item=card(entry.pokemon,Forms.requirement(entry.pokemon,entry.metadata),current.id);
+          item.querySelector('.evolution-requirement').title='Requirements and form availability depend on the game.';
+          group.append(item);
+        });grid.append(group);
+      }
+      updateArtwork();
+    }
+    select.addEventListener('change',render);render();
+  }
   async function load(pokemon) {
     const panel = document.getElementById('evolution-content');
     if (!panel) return;
@@ -303,7 +361,8 @@
     panel.textContent = 'Loading evolution line…';
     panel.setAttribute('aria-busy', 'true');
     try {
-      const selectedSpecies = await get(pokemon.species.url);
+      const Forms=window.CompDexForms;
+      const [selectedSpecies,metadata]=await Promise.all([get(pokemon.species.url),Forms.load()]);
       const chain = selectedSpecies.evolution_chain ? (await get(selectedSpecies.evolution_chain.url)).chain : {species:pokemon.species,evolves_to:[]};
       const nodes = [];
       const walk = (node, depth = 0, parent = null) => {
@@ -315,70 +374,55 @@
         const species = entry.node.species.url === pokemon.species.url ? selectedSpecies : await get(entry.node.species.url);
         const normal = species.varieties.find(v => v.is_default) || species.varieties[0];
         const normalData = normal.pokemon.name === pokemon.name ? pokemon : await get(normal.pokemon.url);
-        const megas = await Promise.all(species.varieties.filter(v => /-mega(?:-|$)/.test(v.pokemon.name)).map(v => v.pokemon.name === pokemon.name ? pokemon : get(v.pokemon.url)));
-        return {...entry, species, normal:normalData, megas};
+        const varieties=await limited(species.varieties.filter(v=>!v.is_default),async v=>v.pokemon.name===pokemon.name&&!pokemon.formResource?pokemon:get(v.pokemon.url));
+        const variants=varieties.filter(p=>Forms.gameplay(p,normalData,metadata.forms[p.name]));
+        if(['arceus','silvally','genesect'].includes(species.name)){
+          const formData=await limited(normalData.forms||[],form=>get(form.url));
+          for(const form of formData)if(form.types?.length&&(form.types[0].type.name!==normalData.types[0].type.name||species.name==='genesect'&&!form.is_default))variants.push(Forms.fromForm(normalData,form));
+        }
+        return {...entry, species, normal:normalData, variants};
       }));
       const paths = await evolutionPaths(family);
+      for(const entry of family)for(const variant of entry.variants){
+        const data=metadata.forms[variant.name];
+        if(Forms.region(variant.name)!=='main'&&!data?.battleOnly&&!/-mega(?:-|$)|-gmax$|-primal$/.test(variant.name)&&!paths.some(path=>path.some(step=>step.pokemon.id===variant.id)))paths.push([{pokemon:variant,text:''}]);
+      }
       if (version !== loadVersion) return;
       panel.replaceChildren();
-      const chainGrid = document.createElement('div');
-      chainGrid.className = 'evolution-chain';
-      const stages = new Map();
-      family.forEach(entry => {
-        if (!stages.has(entry.depth)) stages.set(entry.depth, []);
-        stages.get(entry.depth).push(entry);
-      });
-      const eevee = chain.species.name === 'eevee';
-      const branched = paths.length > 1 || paths.some(path => path.some(step =>
-        !family.some(entry => entry.normal.id === step.pokemon.id)));
-      if (!branched && !eevee) for (const [depth, entries] of stages) {
-        const stage = document.createElement('div');
-        stage.className = 'evolution-stage';
-        entries.forEach(entry => {
-          const branch = document.createElement('div');
-          branch.className = 'evolution-branch';
-          if (entry.parent) {
-            const connector = document.createElement('div');
-            connector.className = 'evolution-connector';
-            const parentLabel = stages.get(depth - 1).length > 1 ? `From ${pretty(entry.parent)}: ` : '';
-            connector.innerHTML = `<strong>${escape(parentLabel + requirements(entry.node.evolution_details))}</strong><span aria-hidden="true">→</span>`;
-            branch.append(connector);
+      const regionKeys=[...new Set(paths.map(path=>path.map(step=>Forms.region(step.pokemon.name)).find(r=>r!=='main')||'main'))].sort((a,b)=>a==='main'?-1:b==='main'?1:a.localeCompare(b));
+      const regionSelect=document.createElement('select');
+      regionSelect.id='evolution-region';regionSelect.className='evolution-select';regionSelect.setAttribute('aria-label','Evolution path');
+      regionKeys.forEach(key=>regionSelect.add(new Option(Forms.labels[key],key)));
+      const selectedPath=paths.find(path=>path.some(step=>step.pokemon.id===pokemon.id));
+      const selectedRegion=selectedPath?.map(step=>Forms.region(step.pokemon.name)).find(r=>r!=='main')||Forms.region(pokemon.name);
+      regionSelect.value=regionKeys.includes(selectedRegion)?selectedRegion:regionKeys[0];
+      if(regionKeys.length>1){const chooser=formDropdown(regionSelect);chooser.classList.add('evolution-region-dropdown');panel.append(chooser);}
+      const route=document.createElement('div');route.id='evolution-route';panel.append(route);
+      const alternate=document.createElement('section');alternate.className='alternate-forms';alternate.setAttribute('aria-label','Alternate forms');panel.append(alternate);
+      function render(){
+        releaseWithin(route);releaseWithin(alternate);
+        route.replaceChildren();alternate.replaceChildren();
+        const activePaths=paths.filter(path=>(path.map(step=>Forms.region(step.pokemon.name)).find(r=>r!=='main')||'main')===regionSelect.value);
+        route.append(chain.species.name==='eevee'?renderEevee(activePaths,pokemon.id):renderRoute(activePaths,pokemon.id));
+        const activePokemon=activePaths.flatMap(path=>path.map(step=>step.pokemon));
+        const available=[];
+        for(const entry of family){
+          const bases=activePokemon.filter(p=>p.species.name===entry.species.name);
+          if(!bases.length)continue;
+          for(const variant of entry.variants){
+            const details=metadata.forms[variant.name]||{};
+            if(activePokemon.some(p=>p.name===variant.name))continue;
+            const expectedRegion=Forms.region(details.from?.toLowerCase()||variant.name);
+            if(!bases.some(base=>Forms.region(base.name)===expectedRegion))continue;
+            // Regional base forms belong to the upper path selector, not this section.
+            if(Forms.region(variant.name)!=='main'&&!details.battleOnly&&!/-mega(?:-|$)|-gmax$|-primal$/.test(variant.name))continue;
+            available.push({pokemon:variant,metadata:details,species:entry.species.name,category:Forms.category(variant,details)});
           }
-          branch.append(card(entry.normal, '', pokemon.id));
-          stage.append(branch);
-        });
-        chainGrid.append(stage);
+        }
+        renderAlternates(alternate,available,pokemon);
+        updateArtwork();
       }
-      panel.append(eevee ? renderEevee(paths, pokemon.id) : branched ? renderEvolutionPaths(paths, pokemon.id) : chainGrid);
-      const megaEntries = family.flatMap(entry => entry.megas.map(mega => ({mega,from:entry.normal.name})));
-      if (megaEntries.length) {
-        const requirementLabels = [];
-        const heading = document.createElement('h3');
-        heading.className = 'evolution-mega-heading';
-        heading.innerHTML = '<span>Mega Evolution</span><span class="evolution-mega-symbol"><img src="assets/mega-evolution.png" alt="Mega Evolution symbol"></span>';
-        const megaGrid = document.createElement('div');
-        megaGrid.className = 'evolution-megas';
-        family.filter(entry => entry.megas.length).forEach(entry => {
-          const group = document.createElement('div');
-          group.className = 'evolution-mega-group';
-          entry.megas.forEach((mega, index) => {
-            if (index) {
-              const arrow = document.createElement('span');
-              arrow.className = 'evolution-mega-arrow';
-              arrow.textContent = '↔';
-              arrow.setAttribute('aria-label', 'Alternative Mega Evolutions');
-              group.append(arrow);
-            }
-            const megaCard = card(mega, 'Loading requirement…', pokemon.id);
-            requirementLabels.push({name:mega.name, label:megaCard.querySelector('.evolution-requirement')});
-            group.append(megaCard);
-          });
-          megaGrid.append(group);
-        });
-        panel.append(heading,megaGrid);
-        fillMegaRequirements(requirementLabels, version);
-      }
-      updateArtwork();
+      regionSelect.addEventListener('change',render);render();
     } catch {
       if (version !== loadVersion) return;
       panel.textContent = 'Could not load evolution line. ';

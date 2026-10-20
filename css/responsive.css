@@ -7,7 +7,7 @@ button, input, select { max-width: 100%; }
 .homepagebar .bar-left, .homepagebar .bar-mid, .homepagebar .bar-right { min-width: 0; }
 .homepagebar .bar-left { flex: 1 1 280px; }
 .homepagebar .bar-mid { flex: 1 1 460px; align-items: center; }
-.homepagebar .bar-right { flex: 1 1 190px; }
+.homepagebar .bar-right { flex: 1 1 268px; }
 .homepagebar #homebutton { font-size: 33px; margin: 0; white-space: nowrap; }
 .homepagebar .page-label { font-size: 25.74px; margin: 0; }
 .homepagebar .searchbarbut, .homepagebar .search-input-wrap { flex: 1; min-width: 0; }
@@ -61,8 +61,9 @@ button, input, select { max-width: 100%; }
 .grid-footer { font-size: 22px; }
 .pagination, #page-form { flex-wrap: wrap; gap: 8px; }
 /* Detail panels flex within their columns; evolution retains its container queries. */
-#pokeinfo { width: 100%; max-width: 1320px; margin: 0 auto; padding: 0 var(--page-gutter) 140px; }
-.info-layout { grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr); gap: var(--layout-gap); }
+#pokeinfo { width: 100%; max-width: none; margin: 0; padding: 0 var(--page-gutter) 140px; }
+/* Give evolution enough room for three horizontal stages beside the primary panels. */
+.info-layout { grid-template-columns: minmax(560px, 870px) minmax(690px, 1fr); gap: var(--layout-gap); }
 .sprite-stats { grid-template-columns: minmax(230px, .85fr) minmax(0, 1.5fr); }
 .sprites, .stats, .info-matchups { width: 100%; max-width: none; }
 #pokeinfo .elements_sidebyside { flex-wrap: wrap; min-width: 0; }
@@ -71,8 +72,7 @@ button, input, select { max-width: 100%; }
 #ability-tooltip { max-width: min(364px, calc(100vw - 44px)); max-height: 50dvh; overflow-y: auto; box-sizing: border-box; }
 #settings-dialog { overflow-y: auto; scrollbar-width: auto; }
 #settings-dialog::-webkit-scrollbar { display: block; width: 8px; }
-.settings-dropdown-menu { position: static; display: none; margin-top: 6px; max-height: min(320px, 45dvh); overflow-y: auto; transform: none; }
-.settings-dropdown.open .settings-dropdown-menu { display: block; }
+.settings-dropdown-menu { max-height: min(320px, 45dvh); overflow-y: auto; }
 .settings-dropdown-option { white-space: normal; text-align: left; }
 .settings-row { flex-wrap: wrap; }
 .settings-actions { flex-wrap: wrap; }
@@ -89,10 +89,13 @@ button, input, select { max-width: 100%; }
   .filters-content { flex-direction: column; flex-wrap: nowrap; }
   .index-toolbar { position: relative; top: auto; }
   .index-toolbar::before { display: none; }
+}
+@media (max-width: 1320px) {
   .info-layout { grid-template-columns: minmax(0, 1fr); }
+  .info-primary { max-width: 870px; }
 }
 /* Larger published header controls need a second row before they collide. */
-@media (max-width: 1120px) {
+@media (max-width: 1200px) {
   .homepagebar { flex-wrap: wrap; gap: 8px; padding: 8px var(--page-gutter); }
   .homepagebar .bar-left { flex: 1 1 0; }
   .homepagebar .bar-right { flex: 0 0 auto; }

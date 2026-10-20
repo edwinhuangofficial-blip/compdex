@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
   <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="css/pokemoninfo.css?v=responsive-1" />
-    <link rel="stylesheet" href="css/shared.css?v=responsive-1" />
-    <link rel="stylesheet" href="css/responsive.css?v=responsive-5" />
+    <link rel="stylesheet" href="css/pokemoninfo.css?v=alternate-forms-4" />
+    <link rel="stylesheet" href="css/shared.css?v=welcome-preview-1" />
+    <link rel="stylesheet" href="css/responsive.css?v=horizontal-evolution-1" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,9 +13,10 @@
       href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-<script src="js/settings.js?v=animated-default-6"></script>
+<script src="js/settings.js?v=welcome-preview-1"></script>
     <script src="js/fetchapi.js?v=compact-header-39"></script>
-    <script src="js/evolution.js?v=evolution-replay-21"></script>
+    <script src="js/forms.js?v=alternate-forms-3"></script>
+    <script src="js/evolution.js?v=alternate-forms-3"></script>
     <title>Pokemon Info</title>
     <!--website title-->
   </head>
@@ -128,7 +129,12 @@
           window.location.href = "notfound.html?pokemon=" + pokename;
           return;
         }
-        const data = await response.json();
+        let data = await response.json();
+        const formName=new URLSearchParams(location.search).get('form');
+        if(formName && data.forms.some(form=>form.name===formName)){
+          const formResponse=await fetch('https://pokeapi.co/api/v2/pokemon-form/'+encodeURIComponent(formName));
+          if(formResponse.ok)data=window.CompDexForms.fromForm(data,await formResponse.json());
+        }
         currentPokemonData = { id: data.id, name: data.name, sprites: compactPokemonSprites(data.sprites) };
         const numberInput = document.getElementById("pokemon-number");
         numberInput.value = data.id;

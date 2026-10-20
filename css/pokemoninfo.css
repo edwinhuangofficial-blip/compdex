@@ -193,6 +193,23 @@ html[data-animations="reduced"] #pokeinfo .eevee-condition-after {
 .ability-info-icon { display: inline-grid; place-items: center; flex-shrink: 0; width: 14px; height: 14px; box-sizing: border-box; border: 1.5px solid currentColor; border-radius: 50%; font: bold 10px/1 Arial, sans-serif; text-transform: none; color: var(--accent); }
 .info-evolution { min-width: 0; box-sizing: border-box; padding: 16px; border: 1px solid var(--accent); border-radius: 10px; background: var(--surface); container-type: inline-size; }
 .info-evolution > h2 { margin: 0 0 14px; font-size: 16px; }
+#evolution-content { position: relative; }
+.evolution-dropdown { position: relative; width: max-content; max-width: 100%; font-weight: 500; }
+.evolution-region-dropdown { position: absolute; left: 0; top: -4px; z-index: 5; }
+.evolution-dropdown-trigger { display: flex; align-items: center; justify-content: space-between; gap: 4px; box-sizing: border-box; height: 28px; padding: 2px 6px; border: 2px solid var(--accent); border-radius: 6px; color: var(--text); background: var(--surface); font: inherit; font-size: 16px; cursor: pointer; }
+.evolution-dropdown-trigger::after { content: '⌄'; color: var(--accent); transition: transform 220ms ease; }
+.evolution-dropdown.open .evolution-dropdown-trigger::after { transform: rotate(180deg); }
+.evolution-dropdown.open { z-index: 80; }
+.evolution-dropdown-menu { position: absolute; top: calc(100% + 8px); left: 0; width: max-content; min-width: 100%; max-width: calc(100vw - 16px); box-sizing: border-box; overflow-y: auto; padding: 8px; border: 2px solid var(--accent); border-radius: 8px; background: var(--surface); box-shadow: 0 8px 20px rgb(var(--accent-rgb) / 18%); opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 220ms ease, transform 220ms cubic-bezier(.22, 1, .36, 1), visibility 220ms; }
+.evolution-dropdown.open .evolution-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.evolution-dropdown-menu button { display: block; width: 100%; box-sizing: border-box; border: 0; border-radius: 5px; padding: 10px; text-align: left; font: inherit; font-size: 16px; color: var(--text); background: var(--surface); cursor: pointer; transition: background-color 180ms ease; }
+.evolution-dropdown-trigger:hover, .evolution-dropdown-menu button:hover, .evolution-dropdown-menu button:focus-visible, .evolution-dropdown-menu button[aria-checked="true"] { background: var(--accent-subtle); }
+.evolution-dropdown-trigger:focus-visible, .evolution-dropdown-menu button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.alternate-forms[hidden] { display: none; }
+.alternate-forms .evolution-mega-group { flex-wrap: wrap; max-width: 100%; }
+.alternate-forms:not([data-category="mega"]) .evolution-requirement { text-transform: none; }
+#pokeinfo .evolution-mega-symbol img { image-rendering: auto; }
+.alternate-forms .evolution-mega-symbol.continuous { gap: 0; }
 .evolution-chain { display: flex; align-items: center; justify-content: center; gap: 18px; }
 .evolution-stage { display: flex; flex-direction: column; gap: 12px; }
 .evolution-branch { display: flex; align-items: center; gap: 18px; }

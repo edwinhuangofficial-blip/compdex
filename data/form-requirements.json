@@ -1,0 +1,2090 @@
+{
+  "source": "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/pokedex.ts",
+  "updatedAt": "2026-10-20T01:41:44.262Z",
+  "forms": {
+    "deoxys-attack": {
+      "name": "Deoxys-Attack",
+      "items": [],
+      "from": "Deoxys",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "deoxys-defense": {
+      "name": "Deoxys-Defense",
+      "items": [],
+      "from": "Deoxys",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "deoxys-speed": {
+      "name": "Deoxys-Speed",
+      "items": [],
+      "from": "Deoxys",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "wormadam-sandy": {
+      "name": "Wormadam-Sandy",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "wormadam-trash": {
+      "name": "Wormadam-Trash",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "shaymin-sky": {
+      "name": "Shaymin-Sky",
+      "items": [],
+      "from": "Shaymin",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "giratina-origin": {
+      "name": "Giratina-Origin",
+      "item": "Griseous Core",
+      "items": [],
+      "from": "Giratina",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rotom-heat": {
+      "name": "Rotom-Heat",
+      "items": [],
+      "from": "Rotom",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rotom-wash": {
+      "name": "Rotom-Wash",
+      "items": [],
+      "from": "Rotom",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rotom-frost": {
+      "name": "Rotom-Frost",
+      "items": [],
+      "from": "Rotom",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rotom-fan": {
+      "name": "Rotom-Fan",
+      "items": [],
+      "from": "Rotom",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rotom-mow": {
+      "name": "Rotom-Mow",
+      "items": [],
+      "from": "Rotom",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "castform-sunny": {
+      "name": "Castform-Sunny",
+      "items": [],
+      "ability": "Forecast",
+      "from": "Castform",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "castform-rainy": {
+      "name": "Castform-Rainy",
+      "items": [],
+      "ability": "Forecast",
+      "from": "Castform",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "castform-snowy": {
+      "name": "Castform-Snowy",
+      "items": [],
+      "ability": "Forecast",
+      "from": "Castform",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "basculin-blue-striped": {
+      "name": "Basculin-Blue-Striped",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "darmanitan-zen": {
+      "name": "Darmanitan-Zen",
+      "items": [],
+      "ability": "Zen Mode",
+      "from": "Darmanitan",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "meloetta-pirouette": {
+      "name": "Meloetta-Pirouette",
+      "items": [],
+      "move": "Relic Song",
+      "from": "Meloetta",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "tornadus-therian": {
+      "name": "Tornadus-Therian",
+      "items": [],
+      "from": "Tornadus",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "thundurus-therian": {
+      "name": "Thundurus-Therian",
+      "items": [],
+      "from": "Thundurus",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "landorus-therian": {
+      "name": "Landorus-Therian",
+      "items": [],
+      "from": "Landorus",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "kyurem-black": {
+      "name": "Kyurem-Black",
+      "items": [],
+      "from": "Kyurem",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "kyurem-white": {
+      "name": "Kyurem-White",
+      "items": [],
+      "from": "Kyurem",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "keldeo-resolute": {
+      "name": "Keldeo-Resolute",
+      "items": [],
+      "move": "Secret Sword",
+      "from": "Keldeo",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "meowstic-female": {
+      "name": "Meowstic-F",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "aegislash-blade": {
+      "name": "Aegislash-Blade",
+      "items": [],
+      "ability": "Stance Change",
+      "from": "Aegislash",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "pumpkaboo-small": {
+      "name": "Pumpkaboo-Small",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pumpkaboo-large": {
+      "name": "Pumpkaboo-Large",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pumpkaboo-super": {
+      "name": "Pumpkaboo-Super",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gourgeist-small": {
+      "name": "Gourgeist-Small",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gourgeist-large": {
+      "name": "Gourgeist-Large",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gourgeist-super": {
+      "name": "Gourgeist-Super",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "venusaur-mega": {
+      "name": "Venusaur-Mega",
+      "item": "Venusaurite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "charizard-mega-x": {
+      "name": "Charizard-Mega-X",
+      "item": "Charizardite X",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "charizard-mega-y": {
+      "name": "Charizard-Mega-Y",
+      "item": "Charizardite Y",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "blastoise-mega": {
+      "name": "Blastoise-Mega",
+      "item": "Blastoisinite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "alakazam-mega": {
+      "name": "Alakazam-Mega",
+      "item": "Alakazite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gengar-mega": {
+      "name": "Gengar-Mega",
+      "item": "Gengarite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "kangaskhan-mega": {
+      "name": "Kangaskhan-Mega",
+      "item": "Kangaskhanite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pinsir-mega": {
+      "name": "Pinsir-Mega",
+      "item": "Pinsirite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gyarados-mega": {
+      "name": "Gyarados-Mega",
+      "item": "Gyaradosite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "aerodactyl-mega": {
+      "name": "Aerodactyl-Mega",
+      "item": "Aerodactylite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "mewtwo-mega-x": {
+      "name": "Mewtwo-Mega-X",
+      "item": "Mewtwonite X",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "mewtwo-mega-y": {
+      "name": "Mewtwo-Mega-Y",
+      "item": "Mewtwonite Y",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "ampharos-mega": {
+      "name": "Ampharos-Mega",
+      "item": "Ampharosite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "scizor-mega": {
+      "name": "Scizor-Mega",
+      "item": "Scizorite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "heracross-mega": {
+      "name": "Heracross-Mega",
+      "item": "Heracronite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "houndoom-mega": {
+      "name": "Houndoom-Mega",
+      "item": "Houndoominite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "tyranitar-mega": {
+      "name": "Tyranitar-Mega",
+      "item": "Tyranitarite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "blaziken-mega": {
+      "name": "Blaziken-Mega",
+      "item": "Blazikenite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gardevoir-mega": {
+      "name": "Gardevoir-Mega",
+      "item": "Gardevoirite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "mawile-mega": {
+      "name": "Mawile-Mega",
+      "item": "Mawilite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "aggron-mega": {
+      "name": "Aggron-Mega",
+      "item": "Aggronite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "medicham-mega": {
+      "name": "Medicham-Mega",
+      "item": "Medichamite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "manectric-mega": {
+      "name": "Manectric-Mega",
+      "item": "Manectite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "banette-mega": {
+      "name": "Banette-Mega",
+      "item": "Banettite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "absol-mega": {
+      "name": "Absol-Mega",
+      "item": "Absolite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "garchomp-mega": {
+      "name": "Garchomp-Mega",
+      "item": "Garchompite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "lucario-mega": {
+      "name": "Lucario-Mega",
+      "item": "Lucarionite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "abomasnow-mega": {
+      "name": "Abomasnow-Mega",
+      "item": "Abomasite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "floette-eternal": {
+      "name": "Floette-Eternal",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "latias-mega": {
+      "name": "Latias-Mega",
+      "item": "Latiasite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "latios-mega": {
+      "name": "Latios-Mega",
+      "item": "Latiosite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "swampert-mega": {
+      "name": "Swampert-Mega",
+      "item": "Swampertite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sceptile-mega": {
+      "name": "Sceptile-Mega",
+      "item": "Sceptilite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sableye-mega": {
+      "name": "Sableye-Mega",
+      "item": "Sablenite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "altaria-mega": {
+      "name": "Altaria-Mega",
+      "item": "Altarianite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gallade-mega": {
+      "name": "Gallade-Mega",
+      "item": "Galladite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "audino-mega": {
+      "name": "Audino-Mega",
+      "item": "Audinite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sharpedo-mega": {
+      "name": "Sharpedo-Mega",
+      "item": "Sharpedonite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "slowbro-mega": {
+      "name": "Slowbro-Mega",
+      "item": "Slowbronite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "steelix-mega": {
+      "name": "Steelix-Mega",
+      "item": "Steelixite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pidgeot-mega": {
+      "name": "Pidgeot-Mega",
+      "item": "Pidgeotite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "glalie-mega": {
+      "name": "Glalie-Mega",
+      "item": "Glalitite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "diancie-mega": {
+      "name": "Diancie-Mega",
+      "item": "Diancite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "metagross-mega": {
+      "name": "Metagross-Mega",
+      "item": "Metagrossite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "kyogre-primal": {
+      "name": "Kyogre-Primal",
+      "item": "Blue Orb",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "groudon-primal": {
+      "name": "Groudon-Primal",
+      "item": "Red Orb",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rayquaza-mega": {
+      "name": "Rayquaza-Mega",
+      "items": [],
+      "move": "Dragon Ascent",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-rock-star": {
+      "name": "Pikachu-Rock-Star",
+      "items": [],
+      "from": "Pikachu-Cosplay",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-belle": {
+      "name": "Pikachu-Belle",
+      "items": [],
+      "from": "Pikachu-Cosplay",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-pop-star": {
+      "name": "Pikachu-Pop-Star",
+      "items": [],
+      "from": "Pikachu-Cosplay",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-phd": {
+      "name": "Pikachu-PhD",
+      "items": [],
+      "from": "Pikachu-Cosplay",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-libre": {
+      "name": "Pikachu-Libre",
+      "items": [],
+      "from": "Pikachu-Cosplay",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-cosplay": {
+      "name": "Pikachu-Cosplay",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "hoopa-unbound": {
+      "name": "Hoopa-Unbound",
+      "items": [],
+      "from": "Hoopa",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "camerupt-mega": {
+      "name": "Camerupt-Mega",
+      "item": "Cameruptite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "lopunny-mega": {
+      "name": "Lopunny-Mega",
+      "item": "Lopunnite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "salamence-mega": {
+      "name": "Salamence-Mega",
+      "item": "Salamencite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "beedrill-mega": {
+      "name": "Beedrill-Mega",
+      "item": "Beedrillite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rattata-alola": {
+      "name": "Rattata-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "raticate-alola": {
+      "name": "Raticate-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "raticate-totem-alola": {
+      "cosmetic": false
+    },
+    "pikachu-original-cap": {
+      "cosmetic": false
+    },
+    "pikachu-hoenn-cap": {
+      "cosmetic": false
+    },
+    "pikachu-sinnoh-cap": {
+      "cosmetic": false
+    },
+    "pikachu-unova-cap": {
+      "cosmetic": false
+    },
+    "pikachu-kalos-cap": {
+      "cosmetic": false
+    },
+    "pikachu-alola-cap": {
+      "cosmetic": false
+    },
+    "raichu-alola": {
+      "name": "Raichu-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sandshrew-alola": {
+      "name": "Sandshrew-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sandslash-alola": {
+      "name": "Sandslash-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "vulpix-alola": {
+      "name": "Vulpix-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "ninetales-alola": {
+      "name": "Ninetales-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "diglett-alola": {
+      "name": "Diglett-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "dugtrio-alola": {
+      "name": "Dugtrio-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "meowth-alola": {
+      "name": "Meowth-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "persian-alola": {
+      "name": "Persian-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "geodude-alola": {
+      "name": "Geodude-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "graveler-alola": {
+      "name": "Graveler-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "golem-alola": {
+      "name": "Golem-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "grimer-alola": {
+      "name": "Grimer-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "muk-alola": {
+      "name": "Muk-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "exeggutor-alola": {
+      "name": "Exeggutor-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "marowak-alola": {
+      "name": "Marowak-Alola",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "greninja-battle-bond": {
+      "name": "Greninja-Bond",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "greninja-ash": {
+      "name": "Greninja-Ash",
+      "items": [],
+      "ability": "Battle Bond",
+      "from": "Greninja-Bond",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "zygarde-10-power-construct": {
+      "cosmetic": false
+    },
+    "zygarde-50-power-construct": {
+      "cosmetic": false
+    },
+    "zygarde-complete": {
+      "name": "Zygarde-Complete",
+      "items": [],
+      "ability": "Power Construct",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "gumshoos-totem": {
+      "name": "Gumshoos-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "vikavolt-totem": {
+      "name": "Vikavolt-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "oricorio-pom-pom": {
+      "name": "Oricorio-Pom-Pom",
+      "items": [],
+      "from": "Oricorio",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "oricorio-pau": {
+      "name": "Oricorio-Pa'u",
+      "items": [],
+      "from": "Oricorio",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "oricorio-sensu": {
+      "name": "Oricorio-Sensu",
+      "items": [],
+      "from": "Oricorio",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "lycanroc-midnight": {
+      "name": "Lycanroc-Midnight",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "wishiwashi-school": {
+      "name": "Wishiwashi-School",
+      "items": [],
+      "ability": "Schooling",
+      "from": "Wishiwashi",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "lurantis-totem": {
+      "name": "Lurantis-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "salazzle-totem": {
+      "name": "Salazzle-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "minior-orange-meteor": {
+      "cosmetic": false
+    },
+    "minior-yellow-meteor": {
+      "cosmetic": false
+    },
+    "minior-green-meteor": {
+      "cosmetic": false
+    },
+    "minior-blue-meteor": {
+      "cosmetic": false
+    },
+    "minior-indigo-meteor": {
+      "cosmetic": false
+    },
+    "minior-violet-meteor": {
+      "cosmetic": false
+    },
+    "minior-red": {
+      "cosmetic": false
+    },
+    "minior-orange": {
+      "name": "Minior-Orange",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": true
+    },
+    "minior-yellow": {
+      "name": "Minior-Yellow",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": true
+    },
+    "minior-green": {
+      "name": "Minior-Green",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": true
+    },
+    "minior-blue": {
+      "name": "Minior-Blue",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": true
+    },
+    "minior-indigo": {
+      "name": "Minior-Indigo",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": true
+    },
+    "minior-violet": {
+      "name": "Minior-Violet",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": true
+    },
+    "mimikyu-busted": {
+      "name": "Mimikyu-Busted",
+      "items": [],
+      "ability": "Disguise",
+      "from": "Mimikyu",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "mimikyu-totem-disguised": {
+      "cosmetic": false
+    },
+    "mimikyu-totem-busted": {
+      "cosmetic": false
+    },
+    "kommo-o-totem": {
+      "name": "Kommo-o-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "magearna-original": {
+      "name": "Magearna-Original",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-partner-cap": {
+      "cosmetic": false
+    },
+    "marowak-totem": {
+      "cosmetic": false
+    },
+    "ribombee-totem": {
+      "name": "Ribombee-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rockruff-own-tempo": {
+      "cosmetic": false
+    },
+    "lycanroc-dusk": {
+      "name": "Lycanroc-Dusk",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "araquanid-totem": {
+      "name": "Araquanid-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "togedemaru-totem": {
+      "name": "Togedemaru-Totem",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "necrozma-dusk": {
+      "name": "Necrozma-Dusk-Mane",
+      "items": [],
+      "from": "Necrozma",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "necrozma-dawn": {
+      "name": "Necrozma-Dawn-Wings",
+      "items": [],
+      "from": "Necrozma",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "necrozma-ultra": {
+      "name": "Necrozma-Ultra",
+      "item": "Ultranecrozium Z",
+      "items": [],
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "pikachu-starter": {
+      "name": "Pikachu-Starter",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "eevee-starter": {
+      "name": "Eevee-Starter",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-world-cap": {
+      "cosmetic": false
+    },
+    "meowth-galar": {
+      "name": "Meowth-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "ponyta-galar": {
+      "name": "Ponyta-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rapidash-galar": {
+      "name": "Rapidash-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "slowpoke-galar": {
+      "name": "Slowpoke-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "slowbro-galar": {
+      "name": "Slowbro-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "farfetchd-galar": {
+      "cosmetic": false
+    },
+    "weezing-galar": {
+      "name": "Weezing-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "mr-mime-galar": {
+      "name": "Mr. Mime-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "articuno-galar": {
+      "name": "Articuno-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zapdos-galar": {
+      "name": "Zapdos-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "moltres-galar": {
+      "name": "Moltres-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "slowking-galar": {
+      "name": "Slowking-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "corsola-galar": {
+      "name": "Corsola-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zigzagoon-galar": {
+      "name": "Zigzagoon-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "linoone-galar": {
+      "name": "Linoone-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "darumaka-galar": {
+      "name": "Darumaka-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "darmanitan-galar-standard": {
+      "name": "Darmanitan-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "darmanitan-galar-zen": {
+      "name": "Darmanitan-Galar-Zen",
+      "items": [],
+      "ability": "Zen Mode",
+      "from": "Darmanitan-Galar",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "yamask-galar": {
+      "name": "Yamask-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "stunfisk-galar": {
+      "name": "Stunfisk-Galar",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zygarde-10": {
+      "name": "Zygarde-10%",
+      "items": [],
+      "from": "Zygarde",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "cramorant-gulping": {
+      "name": "Cramorant-Gulping",
+      "items": [],
+      "ability": "Gulp Missile",
+      "from": "Cramorant",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "cramorant-gorging": {
+      "name": "Cramorant-Gorging",
+      "items": [],
+      "ability": "Gulp Missile",
+      "from": "Cramorant",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "toxtricity-low-key": {
+      "name": "Toxtricity-Low-Key",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "eiscue-noice": {
+      "name": "Eiscue-Noice",
+      "items": [],
+      "ability": "Ice Face",
+      "from": "Eiscue",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "indeedee-female": {
+      "name": "Indeedee-F",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "morpeko-hangry": {
+      "name": "Morpeko-Hangry",
+      "items": [],
+      "ability": "Hunger Switch",
+      "from": "Morpeko",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "zacian-crowned": {
+      "name": "Zacian-Crowned",
+      "item": "Rusted Sword",
+      "items": [],
+      "from": "Zacian",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "zamazenta-crowned": {
+      "name": "Zamazenta-Crowned",
+      "item": "Rusted Shield",
+      "items": [],
+      "from": "Zamazenta",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "eternatus-eternamax": {
+      "name": "Eternatus-Eternamax",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "urshifu-rapid-strike": {
+      "name": "Urshifu-Rapid-Strike",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zarude-dada": {
+      "name": "Zarude-Dada",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "calyrex-ice": {
+      "cosmetic": false
+    },
+    "calyrex-shadow": {
+      "cosmetic": false
+    },
+    "venusaur-gmax": {
+      "name": "Venusaur-Gmax",
+      "items": [],
+      "from": "Venusaur",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "charizard-gmax": {
+      "name": "Charizard-Gmax",
+      "items": [],
+      "from": "Charizard",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "blastoise-gmax": {
+      "name": "Blastoise-Gmax",
+      "items": [],
+      "from": "Blastoise",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "butterfree-gmax": {
+      "name": "Butterfree-Gmax",
+      "items": [],
+      "from": "Butterfree",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pikachu-gmax": {
+      "name": "Pikachu-Gmax",
+      "items": [],
+      "from": "Pikachu",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "meowth-gmax": {
+      "name": "Meowth-Gmax",
+      "items": [],
+      "from": "Meowth",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "machamp-gmax": {
+      "name": "Machamp-Gmax",
+      "items": [],
+      "from": "Machamp",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "gengar-gmax": {
+      "name": "Gengar-Gmax",
+      "items": [],
+      "from": "Gengar",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "kingler-gmax": {
+      "name": "Kingler-Gmax",
+      "items": [],
+      "from": "Kingler",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "lapras-gmax": {
+      "name": "Lapras-Gmax",
+      "items": [],
+      "from": "Lapras",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "eevee-gmax": {
+      "name": "Eevee-Gmax",
+      "items": [],
+      "from": "Eevee",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "snorlax-gmax": {
+      "name": "Snorlax-Gmax",
+      "items": [],
+      "from": "Snorlax",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "garbodor-gmax": {
+      "name": "Garbodor-Gmax",
+      "items": [],
+      "from": "Garbodor",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "melmetal-gmax": {
+      "name": "Melmetal-Gmax",
+      "items": [],
+      "from": "Melmetal",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "rillaboom-gmax": {
+      "name": "Rillaboom-Gmax",
+      "items": [],
+      "from": "Rillaboom",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "cinderace-gmax": {
+      "name": "Cinderace-Gmax",
+      "items": [],
+      "from": "Cinderace",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "inteleon-gmax": {
+      "name": "Inteleon-Gmax",
+      "items": [],
+      "from": "Inteleon",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "corviknight-gmax": {
+      "name": "Corviknight-Gmax",
+      "items": [],
+      "from": "Corviknight",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "orbeetle-gmax": {
+      "name": "Orbeetle-Gmax",
+      "items": [],
+      "from": "Orbeetle",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "drednaw-gmax": {
+      "name": "Drednaw-Gmax",
+      "items": [],
+      "from": "Drednaw",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "coalossal-gmax": {
+      "name": "Coalossal-Gmax",
+      "items": [],
+      "from": "Coalossal",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "flapple-gmax": {
+      "name": "Flapple-Gmax",
+      "items": [],
+      "from": "Flapple",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "appletun-gmax": {
+      "name": "Appletun-Gmax",
+      "items": [],
+      "from": "Appletun",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sandaconda-gmax": {
+      "name": "Sandaconda-Gmax",
+      "items": [],
+      "from": "Sandaconda",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "toxtricity-amped-gmax": {
+      "name": "Toxtricity-Gmax",
+      "items": [],
+      "from": "Toxtricity",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "centiskorch-gmax": {
+      "name": "Centiskorch-Gmax",
+      "items": [],
+      "from": "Centiskorch",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "hatterene-gmax": {
+      "name": "Hatterene-Gmax",
+      "items": [],
+      "from": "Hatterene",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "grimmsnarl-gmax": {
+      "name": "Grimmsnarl-Gmax",
+      "items": [],
+      "from": "Grimmsnarl",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "alcremie-gmax": {
+      "name": "Alcremie-Gmax",
+      "items": [],
+      "from": "Alcremie",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "copperajah-gmax": {
+      "name": "Copperajah-Gmax",
+      "items": [],
+      "from": "Copperajah",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "duraludon-gmax": {
+      "name": "Duraludon-Gmax",
+      "items": [],
+      "from": "Duraludon",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "urshifu-single-strike-gmax": {
+      "name": "Urshifu-Gmax",
+      "items": [],
+      "from": "Urshifu",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "urshifu-rapid-strike-gmax": {
+      "name": "Urshifu-Rapid-Strike-Gmax",
+      "items": [],
+      "from": "Urshifu-Rapid-Strike",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "toxtricity-low-key-gmax": {
+      "name": "Toxtricity-Low-Key-Gmax",
+      "items": [],
+      "from": "Toxtricity-Low-Key",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "growlithe-hisui": {
+      "name": "Growlithe-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "arcanine-hisui": {
+      "name": "Arcanine-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "voltorb-hisui": {
+      "name": "Voltorb-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "electrode-hisui": {
+      "name": "Electrode-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "typhlosion-hisui": {
+      "name": "Typhlosion-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "qwilfish-hisui": {
+      "name": "Qwilfish-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sneasel-hisui": {
+      "name": "Sneasel-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "samurott-hisui": {
+      "name": "Samurott-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "lilligant-hisui": {
+      "name": "Lilligant-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zorua-hisui": {
+      "name": "Zorua-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zoroark-hisui": {
+      "name": "Zoroark-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "braviary-hisui": {
+      "name": "Braviary-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "sliggoo-hisui": {
+      "name": "Sliggoo-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "goodra-hisui": {
+      "name": "Goodra-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "avalugg-hisui": {
+      "name": "Avalugg-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "decidueye-hisui": {
+      "name": "Decidueye-Hisui",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "dialga-origin": {
+      "name": "Dialga-Origin",
+      "item": "Adamant Crystal",
+      "items": [],
+      "from": "Dialga",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "palkia-origin": {
+      "name": "Palkia-Origin",
+      "item": "Lustrous Globe",
+      "items": [],
+      "from": "Palkia",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "basculin-white-striped": {
+      "name": "Basculin-White-Striped",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "basculegion-female": {
+      "name": "Basculegion-F",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "enamorus-therian": {
+      "name": "Enamorus-Therian",
+      "items": [],
+      "from": "Enamorus",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "tauros-paldea-combat-breed": {
+      "cosmetic": false
+    },
+    "tauros-paldea-blaze-breed": {
+      "cosmetic": false
+    },
+    "tauros-paldea-aqua-breed": {
+      "cosmetic": false
+    },
+    "wooper-paldea": {
+      "name": "Wooper-Paldea",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "oinkologne-female": {
+      "name": "Oinkologne-F",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "dudunsparce-three-segment": {
+      "name": "Dudunsparce-Three-Segment",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "palafin-hero": {
+      "name": "Palafin-Hero",
+      "items": [],
+      "ability": "Zero to Hero",
+      "from": "Palafin",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "maushold-family-of-three": {
+      "cosmetic": false
+    },
+    "tatsugiri-droopy": {
+      "name": "Tatsugiri-Droopy",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "tatsugiri-stretchy": {
+      "name": "Tatsugiri-Stretchy",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "squawkabilly-blue-plumage": {
+      "cosmetic": false
+    },
+    "squawkabilly-yellow-plumage": {
+      "cosmetic": false
+    },
+    "squawkabilly-white-plumage": {
+      "cosmetic": false
+    },
+    "gimmighoul-roaming": {
+      "name": "Gimmighoul-Roaming",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "koraidon-limited-build": {
+      "cosmetic": false
+    },
+    "koraidon-sprinting-build": {
+      "cosmetic": false
+    },
+    "koraidon-swimming-build": {
+      "cosmetic": false
+    },
+    "koraidon-gliding-build": {
+      "cosmetic": false
+    },
+    "miraidon-low-power-mode": {
+      "cosmetic": false
+    },
+    "miraidon-drive-mode": {
+      "cosmetic": false
+    },
+    "miraidon-aquatic-mode": {
+      "cosmetic": false
+    },
+    "miraidon-glide-mode": {
+      "cosmetic": false
+    },
+    "ursaluna-bloodmoon": {
+      "name": "Ursaluna-Bloodmoon",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "ogerpon-wellspring-mask": {
+      "name": "Ogerpon-Wellspring",
+      "item": "Wellspring Mask",
+      "items": [],
+      "from": "Ogerpon",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "ogerpon-hearthflame-mask": {
+      "name": "Ogerpon-Hearthflame",
+      "item": "Hearthflame Mask",
+      "items": [],
+      "from": "Ogerpon",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "ogerpon-cornerstone-mask": {
+      "name": "Ogerpon-Cornerstone",
+      "item": "Cornerstone Mask",
+      "items": [],
+      "from": "Ogerpon",
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "terapagos-terastal": {
+      "name": "Terapagos-Terastal",
+      "items": [],
+      "from": "Terapagos",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "terapagos-stellar": {
+      "name": "Terapagos-Stellar",
+      "items": [],
+      "from": "Terapagos",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "clefable-mega": {
+      "name": "Clefable-Mega",
+      "item": "Clefablite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "victreebel-mega": {
+      "name": "Victreebel-Mega",
+      "item": "Victreebelite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "starmie-mega": {
+      "name": "Starmie-Mega",
+      "item": "Starminite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "dragonite-mega": {
+      "name": "Dragonite-Mega",
+      "item": "Dragoninite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "meganium-mega": {
+      "name": "Meganium-Mega",
+      "item": "Meganiumite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "feraligatr-mega": {
+      "name": "Feraligatr-Mega",
+      "item": "Feraligite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "skarmory-mega": {
+      "name": "Skarmory-Mega",
+      "item": "Skarmorite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "froslass-mega": {
+      "name": "Froslass-Mega",
+      "item": "Froslassite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "emboar-mega": {
+      "name": "Emboar-Mega",
+      "item": "Emboarite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "excadrill-mega": {
+      "name": "Excadrill-Mega",
+      "item": "Excadrite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "scolipede-mega": {
+      "name": "Scolipede-Mega",
+      "item": "Scolipite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "scrafty-mega": {
+      "name": "Scrafty-Mega",
+      "item": "Scraftinite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "eelektross-mega": {
+      "name": "Eelektross-Mega",
+      "item": "Eelektrossite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "chandelure-mega": {
+      "name": "Chandelure-Mega",
+      "item": "Chandelurite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "chesnaught-mega": {
+      "name": "Chesnaught-Mega",
+      "item": "Chesnaughtite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "delphox-mega": {
+      "name": "Delphox-Mega",
+      "item": "Delphoxite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "greninja-mega": {
+      "name": "Greninja-Mega",
+      "item": "Greninjite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "pyroar-mega": {
+      "name": "Pyroar-Mega",
+      "item": "Pyroarite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "floette-mega": {
+      "name": "Floette-Mega",
+      "item": "Floettite",
+      "items": [],
+      "from": "Floette-Eternal",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "malamar-mega": {
+      "name": "Malamar-Mega",
+      "item": "Malamarite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "barbaracle-mega": {
+      "name": "Barbaracle-Mega",
+      "item": "Barbaracite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "dragalge-mega": {
+      "name": "Dragalge-Mega",
+      "item": "Dragalgite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "hawlucha-mega": {
+      "name": "Hawlucha-Mega",
+      "item": "Hawluchanite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "zygarde-mega": {
+      "name": "Zygarde-Mega",
+      "item": "Zygardite",
+      "items": [],
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "drampa-mega": {
+      "name": "Drampa-Mega",
+      "item": "Drampanite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "falinks-mega": {
+      "name": "Falinks-Mega",
+      "item": "Falinksite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "raichu-mega-x": {
+      "name": "Raichu-Mega-X",
+      "item": "Raichunite X",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "raichu-mega-y": {
+      "name": "Raichu-Mega-Y",
+      "item": "Raichunite Y",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "chimecho-mega": {
+      "name": "Chimecho-Mega",
+      "item": "Chimechite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "absol-mega-z": {
+      "name": "Absol-Mega-Z",
+      "item": "Absolite Z",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "staraptor-mega": {
+      "name": "Staraptor-Mega",
+      "item": "Staraptite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "garchomp-mega-z": {
+      "name": "Garchomp-Mega-Z",
+      "item": "Garchompite Z",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "lucario-mega-z": {
+      "name": "Lucario-Mega-Z",
+      "item": "Lucarionite Z",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "heatran-mega": {
+      "name": "Heatran-Mega",
+      "item": "Heatranite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "darkrai-mega": {
+      "name": "Darkrai-Mega",
+      "item": "Darkranite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "golurk-mega": {
+      "name": "Golurk-Mega",
+      "item": "Golurkite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "meowstic-male-mega": {
+      "name": "Meowstic-M-Mega",
+      "item": "Meowsticite",
+      "items": [],
+      "from": "Meowstic",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "crabominable-mega": {
+      "name": "Crabominable-Mega",
+      "item": "Crabominite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "golisopod-mega": {
+      "name": "Golisopod-Mega",
+      "item": "Golisopite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "magearna-mega": {
+      "name": "Magearna-Mega",
+      "item": "Magearnite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "magearna-original-mega": {
+      "name": "Magearna-Original-Mega",
+      "item": "Magearnite",
+      "items": [],
+      "from": "Magearna-Original",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "zeraora-mega": {
+      "name": "Zeraora-Mega",
+      "item": "Zeraorite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "scovillain-mega": {
+      "name": "Scovillain-Mega",
+      "item": "Scovillainite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "glimmora-mega": {
+      "name": "Glimmora-Mega",
+      "item": "Glimmoranite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "tatsugiri-curly-mega": {
+      "name": "Tatsugiri-Curly-Mega",
+      "item": "Tatsugirinite",
+      "items": [],
+      "from": "Tatsugiri",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "tatsugiri-droopy-mega": {
+      "name": "Tatsugiri-Droopy-Mega",
+      "item": "Tatsugirinite",
+      "items": [],
+      "from": "Tatsugiri-Droopy",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "tatsugiri-stretchy-mega": {
+      "name": "Tatsugiri-Stretchy-Mega",
+      "item": "Tatsugirinite",
+      "items": [],
+      "from": "Tatsugiri-Stretchy",
+      "battleOnly": true,
+      "cosmetic": false
+    },
+    "baxcalibur-mega": {
+      "name": "Baxcalibur-Mega",
+      "item": "Baxcalibrite",
+      "items": [],
+      "battleOnly": false,
+      "cosmetic": false
+    },
+    "meowstic-female-mega": {
+      "name": "Meowstic-F-Mega",
+      "item": "Meowsticite",
+      "items": [],
+      "from": "Meowstic-F",
+      "battleOnly": true,
+      "cosmetic": false
+    }
+  },
+  "icons": {
+    "Blue Orb": "assets/forms/blue-orb.png",
+    "Red Orb": "assets/forms/red-orb.png",
+    "Dynamax Band": "assets/forms/dynamax-band.png",
+    "Griseous Orb": "assets/forms/griseous-orb.png",
+    "Griseous Core": "assets/forms/griseous-core.png",
+    "Adamant Crystal": "assets/forms/adamant-crystal.png",
+    "Lustrous Globe": "assets/forms/lustrous-globe.png",
+    "Reveal Glass": "assets/forms/reveal-glass.png",
+    "Gracidea": "assets/forms/gracidea.png",
+    "Prison Bottle": "assets/forms/prison-bottle.png",
+    "DNA Splicers": "assets/forms/dna-splicers.png",
+    "Reins of Unity": "assets/forms/reins-of-unity.png",
+    "Yellow Nectar": "assets/forms/yellow-nectar.png",
+    "Pink Nectar": "assets/forms/pink-nectar.png",
+    "Purple Nectar": "assets/forms/purple-nectar.png",
+    "Flame Plate": "assets/forms/flame-plate.png",
+    "Fire Memory": "assets/forms/fire-memory.png",
+    "Burn Drive": "assets/forms/burn-drive.png",
+    "Tera Orb": "assets/forms/tera-orb.png",
+    "Rusted Sword": "assets/forms/rusted-sword.png",
+    "Rusted Shield": "assets/forms/rusted-shield.png",
+    "Wellspring Mask": "assets/forms/wellspring-mask.png",
+    "Hearthflame Mask": "assets/forms/hearthflame-mask.png",
+    "Cornerstone Mask": "assets/forms/cornerstone-mask.png",
+    "N-Solarizer": "assets/forms/n-solarizer.png",
+    "N-Lunarizer": "assets/forms/n-lunarizer.png",
+    "Ultranecrozium Z": "assets/forms/ultranecrozium-z.png"
+  }
+}
